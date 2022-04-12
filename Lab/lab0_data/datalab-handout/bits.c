@@ -206,7 +206,14 @@ int negate(int x) {
  *   Rating: 3
  */
 int isAsciiDigit(int x) {
-  return 2;
+  // High byte shold be 00h 00h 00h 3xh
+  int checkHighByte = !(~(((x ^ (~0x30)) >> 4)));
+  // Lower four bits
+  // 1. 0b0xxx
+  // 2. 0bx00x 
+  int cond1 = !(x & 0x08);
+  int cond2 = !(x & 0x06);
+  return checkHighByte & (cond1 | cond2);
 }
 /* 
  * conditional - same as x ? y : z 
