@@ -79,7 +79,6 @@ EXAMPLES OF ACCEPTABLE CODING STYLE:
      /* exploit ability of shifts to compute powers of 2 */
      return (1 << x) + 1;
   }
-
   /*
    * pow2plus4 - returns 2^x + 4, where 0 <= x <= 31
    */
@@ -144,6 +143,11 @@ NOTES:
  *   Rating: 1
  */
 int bitXor(int x, int y) {
+  /*
+   * By De Morgan's law
+   * ~(A & B) = (~A | ~B)
+   * ~(A | B) = (~A & ~B)
+   */
   return ~(~x & ~y) & ~(x & y);
 }
 /* 
@@ -164,7 +168,7 @@ int tmin(void) {
  *   Rating: 1
  */
 int isTmax(int x) {
-  return 2;
+  return !(~(x + 1 + x) | (!(x + 1)));
 }
 /* 
  * allOddBits - return 1 if all odd-numbered bits in word set to 1
