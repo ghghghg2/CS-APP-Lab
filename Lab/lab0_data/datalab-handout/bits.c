@@ -223,7 +223,17 @@ int isAsciiDigit(int x) {
  *   Rating: 3
  */
 int conditional(int x, int y, int z) {
-  return 2;
+  // if (x != 0) return y
+  // if (x == 0) return z
+  // Assume a form: A & y | B & z
+  // if (x != 0) A = -1;
+  // if (x == 0) A = 0; 
+  // Oppositely,
+  // if (x != 0) B = 0;
+  // if (x == 0) B = -1; 
+  int B = ((!x) << 31) >> 31;
+  int A = ~B;
+  return (A & y) | (B & z);
 }
 /* 
  * isLessOrEqual - if x <= y  then return 1, else return 0 
