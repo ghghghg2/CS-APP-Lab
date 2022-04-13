@@ -243,7 +243,24 @@ int conditional(int x, int y, int z) {
  *   Rating: 3
  */
 int isLessOrEqual(int x, int y) {
-  return 2;
+  int signMask = 1 << 31;
+  // if y - x >= 0, x <= y
+  int is_YminusX_pos = !((y + (~x + 1)) & signMask);
+  // Two exceptions
+  // 1. Positive overflow
+  // When y > 0 && x < 0, y - x might get a result y - x < 0 
+  // which is not true.
+  // So the is_YminusX_pos can't be trusted in this case
+  // if y > 0 && x < 0, we should return true regardless of isYminusXpos
+  int isYposXneg = (!(y & signMask)) & (!((~x) & signMask));
+  // 2. Negative overflow
+  // When y < 0 && x > 0, y - x might get a result y - x > 0 
+  // which is not true.
+  // So the is_YminusX_pos can't be trusted in this case
+  // if y < 0 && x > 0, we should return false regardless of isYminusXpos.
+  int isYnegXpos = (!(~y & signMask)) & (!(x & signMask));
+
+  return (!isYnegXpos) & (is_YminusX_pos | isYposXneg);
 }
 //4
 /* 
