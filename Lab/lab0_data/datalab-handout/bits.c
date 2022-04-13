@@ -272,7 +272,28 @@ int isLessOrEqual(int x, int y) {
  *   Rating: 4 
  */
 int logicalNeg(int x) {
-  return 2;
+  // positive filter
+  // x >= 0 => filter = 0b1111...111
+  // x < 0  => filter = 0b0000...000
+  int filterPos = ((1 << 31) & (~x)) >> 31;
+  int Tmax = ~(1 << 31);
+  // 1. Property of negative number
+  // if x == 0, x >> 31 is 0
+  // if x < 0, x >> 31 is 0xffffffff
+  // negative number can easily get true while 0 get false
+  // 2. Mapping all positive number (except for 0) to negative number
+  // F(x) >= 0, if x == 0
+  // F(x) < 0, if x > 0
+  // => F(x) = x + Tmax
+  // if x == 0, x + Tmax > 0
+  // if x > 0, x + Tmax < 0
+  int allToNeg = x + (filterPos & Tmax);
+  // 3. Separate all non-zero number from zero
+  int xToBool = (allToNeg >> 31) & 1;
+  // 4. logical not
+  int logicalNotX = xToBool ^ 1;
+  
+  return logicalNotX;
 }
 /* howManyBits - return the minimum number of bits required to represent x in
  *             two's complement
