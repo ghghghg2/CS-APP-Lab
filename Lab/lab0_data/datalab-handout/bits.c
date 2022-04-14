@@ -316,7 +316,7 @@ int howManyBits(int x) {
   //  => (the highest bit position with 1) is 3
   //  => the minimum number of bits required to represent x in
   //     two's complement is 3+1=4
-  // Oppositely, if x < 0, find the highest bit position with 1
+  // Oppositely, if x < 0, find the highest bit position with 0
   // To simplify, turn x into ~x if x < 0
   // if (x >= 0) x
   // if (x < 0) ~x
