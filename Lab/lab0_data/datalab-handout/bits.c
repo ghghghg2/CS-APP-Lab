@@ -308,7 +308,37 @@ int logicalNeg(int x) {
  *  Rating: 4
  */
 int howManyBits(int x) {
-  return 0;
+  int b5, b4, b3, b2, b1, b0;
+  // if x >= 0, find the highest bit position with 1
+  // the minimum number of bits required to represent x in
+  // two's complement is (the highest bit position with 1) + 1
+  // EX. 101
+  //  => (the highest bit position with 1) is 3
+  //  => the minimum number of bits required to represent x in
+  //     two's complement is 3+1=4
+  // Oppositely, if x < 0, find the highest bit position with 1
+  // To simplify, turn x into ~x if x < 0
+  // if (x >= 0) x
+  // if (x < 0) ~x
+  // asssume the form x ^ A
+  // => if (x >= 0) A = 0
+  //    if (x < 0) A = 0b1111...11
+  // => A = (x >> 31)
+  int A = x >> 31;
+  int absX = (x ^ A);
+  b5 = (!!(absX >> 16)) << 4; // if more than 16 bits needed
+  absX >>= b5; 
+  b4 = (!!(absX >> 8)) << 3; // if more than 8 bits needed
+  absX >>= b4;
+  b3 = (!!(absX >> 4)) << 2; // if more than 4 bits needed
+  absX >>= b3;
+  b2 = (!!(absX >> 2)) << 1; // if more than 2 bits needed
+  absX >>= b2;
+  b1 = !!(absX >> 1);
+  absX >>= b1;
+  b0 = absX;
+
+  return b5 + b4 + b3 + b2 + b1 + b0 + 1;
 }
 //float
 /* 
