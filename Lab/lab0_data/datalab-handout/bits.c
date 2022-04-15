@@ -353,7 +353,28 @@ int howManyBits(int x) {
  *   Rating: 4
  */
 unsigned floatScale2(unsigned uf) {
-  return 2;
+  // Note. unsigned is a shorthand for unsigned int 
+  // float bits layout:
+  // | s | exp | mantissa |
+  // | 1 |  8  |    23    |
+  int sign = uf & (1 << 31);
+  int exp = (uf >> 23) & 0xff;
+  int mantissa = uf & 0x7fffff;
+  // Denormalized
+  if (exp == 0xff) { // inf or nan
+    return uf;
+  }
+  if (exp == 0) { // closed to 0
+    if (!((1 << 23) & mantissa)) { // MSB of mantissa is 0
+      mantissa <<= 1;
+    } else {
+      exp += 1;
+    }
+  } else { // Normalized
+    exp += 1;
+  }
+  
+  return sign | (exp << 23) | mantissa;
 }
 /* 
  * floatFloat2Int - Return bit-level equivalent of expression (int) f
