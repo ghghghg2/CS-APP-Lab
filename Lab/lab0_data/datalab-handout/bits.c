@@ -432,5 +432,16 @@ int floatFloat2Int(unsigned uf) {
  *   Rating: 4
  */
 unsigned floatPower2(int x) {
-    return 2;
+  int sign, exp, mantissa;
+  sign = (x & (1 << 31));
+  exp = x + 127; 
+  mantissa = 0;
+  if (exp >= 255) {
+    exp = 0xff;
+  } else if (exp < 0) {
+    sign = 0;
+    exp = 0;
+  }
+
+  return sign | (exp << 23) | mantissa;
 }
