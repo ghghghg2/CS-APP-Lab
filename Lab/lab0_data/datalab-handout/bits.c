@@ -389,7 +389,34 @@ unsigned floatScale2(unsigned uf) {
  *   Rating: 4
  */
 int floatFloat2Int(unsigned uf) {
-  return 2;
+  // Note. unsigned is a shorthand for unsigned int 
+  // float bits layout:
+  // | s | exp | mantissa |
+  // | 1 |  8  |    23    |
+  int signMask = (1 << 31);
+  int sign = uf & signMask;
+  int exp = (uf >> 23) & 0xff;
+  int E = exp - 127;
+  int mantissa = uf & 0x7fffff;
+  int mantissaExtend = (1 << 24);
+  mantissa |= mantissaExtend; 
+
+  if (E < 0) {  // close to zero
+    return 0;
+  } else if (E == 0) {
+    mantissa = 1;
+  } else if (E >= 31) { // inf ,nan or out of range
+    return (1 << 31);
+  } else if ((E > 0) && (E <= 23)) {
+    mantissa >>= (23 - E);
+  } else { // (E > 23) && (E < 31)
+    mantissa <<= (E - 23);
+  }
+  if (!sign) { // positive
+    return mantissa;
+  } else { // negaive
+    return (~mantissa) + 1;
+  }
 }
 /* 
  * floatPower2 - Return bit-level equivalent of the expression 2.0^x
