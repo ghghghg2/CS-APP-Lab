@@ -1,0 +1,703 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"> <html style><!--
+ Page saved with SingleFile 
+ url: https://beej.us/guide/bggdb/#compiling 
+ saved date: Sun Apr 24 2022 01:46:32 GMT+0800 (台北標準時間)
+--><meta charset=utf-8>
+<title>Beej's Quick Guide to GDB</title>
+<style id=d5cfb9fe-b03d-4524-a245-6e962480abb8>body{background-color:white;color:black;font-family:"Helvetica","Arial",sans-serif;margin:35pt;margin-top:10pt;margin-bottom:10pt}h2{font-size:1.5em;font-weight:bold;margin-top:1.5em;margin-bottom:0.0em}h3{font-size:1.2em;font-weight:bold;margin-top:1.5em;margin-bottom:0.0em}*.guidetitle{font-weight:bold;font-size:2em;margin-bottom:0em}*.function{font-weight:bold}*.command{font-weight:bold}*.singleborder{border-color:#222;border-style:solid;border-width:1px;margin:1em;padding:1em}pre.screen{font-family:"Courier New","Courier",monospace;font-size:0.8em;background-color:#e0e0e0;border-color:#000;border-style:solid;border-right-style:dashed;border-bottom-style:dashed;border-width:1px;margin:0.2em;padding:0.2em}*.tablespacer{padding-top:1.5em}*.tableheader{font-size:1.3em;font-weight:bold;text-decoration:underline}*.smalltext{font-size:0.7em}*.rightpad{padding-right:3em}*.pbb{page-break-before:always}.a23f2b61-775b-4c11-8b6b-9bee7a63e599{position:relative!important;border-radius:0.2em!important;padding:0px!important;margin:0px!important}@keyframes ebe72e3c-46a8-41fa-ad9b-cf28776fbbd0{0%{opacity:0;transform:scale(0.6)}100%{opacity:1;transform:scale(1)}}@keyframes d8236e3f-0967-4f2a-a5ab-1ffe489f2773{100%{opacity:0;transform:scale(0.3)}}.f8938515-503d-4466-a87a-f5237b2a9416{font:inherit;text-shadow:none!important}.default-orange-da01945e-1964-4d27-8a6c-3331e1fe7f14{box-shadow:rgb(255,210,170) 0px 0px 0.35em;background-color:rgba(255,210,170,0.8)!important;color:rgb(0,0,0)!important}</style><link rel=icon type=image/gif href="data:image/gif;base64,R0lGODdhEAAQAIAAAD4xonxw2iwAAAAAEAAQAAACJoSPmcHNapxT89TY0AUb8uxZoBRoo2Q+ooqxn7vFYFsuZE3d4Q4UADs="><link rel=canonical href=https://beej.us/guide/bggdb/#compiling><meta http-equiv=content-security-policy content="default-src 'none'; font-src 'self' data:; img-src 'self' data:; style-src 'unsafe-inline'; media-src 'self' data:; script-src 'unsafe-inline' data:;"></head>
+<body>
+<h1 class=guidetitle>Beej's Quick Guide to GDB</h1>
+<i>Release 2 (2009 Jun 14)</i>
+<p>Translations:
+<ul>
+<li><a href=https://paintingvalley.com/ru-bggdb>Russian</a>
+</ul>
+<p>This is a very quick-and-dirty guide meant to get you started with
+the GNU Debugger, <b class=command>gdb</b>, from the command line in a
+terminal. Often times <b class=command>gdb</b> is run via an IDE, but
+many people out there shun IDEs for a variety of reasons, and this
+tutorial is for you!</p>
+<p>Again, this is only a getting-started guide. There's much much MUCH
+more to learn about what the debugger does than is written in these few
+short paragraphs. Check out your "man" pages or the online resources
+listed below for more info.</p>
+<p>This tutorial is meant to be read in order, up to, but not including,
+the "Misc" section.</p>
+<h2>Contents</h2>
+<ul>
+<li><a href=#compiling>Compiling to use a debugger</a>
+<li><a href=#more>More Information</a>
+<li><a href=#license>License</a>
+<li><a href=#starting>Starting <b class=command>gdb</b> and getting to <tt class=code>main()</tt></a>
+<li><a href=#breakpoints>Breakpoints</a>
+<li><a href=#stepping>Stepping Around</a>
+<li><a href=#exvars>Examining Variables</a>
+<li><a href=#misc>Misc Stuff</a>
+ <ul>
+ <li><a href=#stackman>Stack Manipulation</a>
+ <li><a href=#morestep>Additional Stepping Methods</a>
+ <li><a href=#jump>Jumping to an Arbitrary Section of Code</a>
+ <li><a href=#varmod>Changing Variables and Values at Runtime</a>
+ <li><a href=#hardwatch>Hardware Watchpoints</a>
+ <li><a href=#attach>Attach to a Running Process</a>
+ <li><a href=#coredump>Using Coredumps for Postmortem Analysis</a>
+ <li><a href=#window>Window Functions</a>
+ <li><a href=#regasm>Display Registers and Assembly</a>
+ <li><a href=#frontend>Writing a Front-End</a>
+ </ul>
+<li><a href=#qref>Quick Reference Cheat Sheet</a>
+</ul>
+<a name=compiling></a>
+<h2 class=pbb>Compiling</h2>
+<p>You have to tell your compiler to compile your code with symbolic
+debugging information included. Here's how to do it with <b class=command>gcc</b>, with the <b class=option>-g</b> switch:</p>
+<pre class=screen>$ <b class=userinput>gcc -g hello.c -o hello</b>
+
+$ <b class=userinput>g++ -g hello.cpp -o hello</b>
+
+</pre>
+<p>Once you've done that, you should be able to view program listings in
+the debugger.</p>
+<a name=more></a>
+<h2>More Information</h2>
+<p>Check out the <a target=_blank href=http://www.gnu.org/software/gdb/documentation/>Official GDB
+Documentation</a> for more information than you can shake a stick
+at!</p>
+<p>Also, a good GNU GDB front-end is <a target=_blank href=http://www.gnu.org/software/ddd/>DDD, the
+DataDisplayDebugger</a>.</p>
+<a name=license></a>
+<h2>License</h2>
+<a rel=license href=http://creativecommons.org/licenses/by-nc-nd/3.0/us/ target=_blank><img alt="Creative Commons License" style=border-width:0;float:right;padding-left:20px src="data:image/png;base64,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"></a><p><span xmlns:dc=http://purl.org/dc/elements/1.1/ href=http://purl.org/dc/dcmitype/Text property=dc:title rel=dc:type>Beej's Quick Guide to GDB</span> by <a xmlns:cc=http://creativecommons.org/ns# href=http://beej.us/guide/bggdb/ property=cc:attributionName rel=cc:attributionURL>Brian "Beej Jorgensen" Hall</a> is licensed under a <a rel=license href=http://creativecommons.org/licenses/by-nc-nd/3.0/us/ target=_blank>Creative Commons Attribution-Noncommercial-No Derivative Works 3.0 United States License</a>.</p>
+<a name=starting></a>
+<h2 class=pbb>Starting The Debugger</h2>
+<p>First things first: you can enter <b class=userinput>help</b> at
+any <b class=command>gdb</b> prompt and get more information. Also,
+you can enter <b class=userinput>quit</b> to quit the debugger.
+Finally, just hitting <b class=userinput>RETURN</b> will repeat the
+last command entered. Now let's fire it up!</p>
+<p>There are several ways to start the debugger (e.g. if you were an IDE
+you might start it with a particular mode that's not so human-friendly)
+but I'll mention two of them here: vanilla console mode and curses GUI
+mode. The GUI is better, but let's quickly cover the simple one, and
+launch a program called <b class=command>hello</b> in the debugger:</p>
+<pre class=screen>$ <b class=userinput>gdb hello</b>
+GNU gdb 6.8
+Copyright (C) 2008 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later &lt;http://gnu.org/licenses/gpl.html&gt;
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.  Type "show copying"
+and "show warranty" for details.
+This GDB was configured as "i486-slackware-linux"...
+(gdb) <b class=userinput>run</b>
+Starting program: /home/beej/hello 
+Hello, world!
+
+Program exited normally.
+(gdb) 
+</pre>
+<p>The last line is the <b class=command>gdb</b> prompt, waiting for
+you to tell it what to do. Type <b class=userinput>r</b> or <b class=userinput>run</b> to run the program. (<b class=command>gdb</b> allows you to abbreviate commands until they
+become ambiguous.)</p>
+<p><b>To start in neato and highly-recommended GUI mode</b>, start the
+debugger with <b class=command>gdb -tui</b>. (For many of the
+examples, below, I show the output of <b class=command>gdb</b>'s dumb
+terminal mode, but in real life I use TUI mode exclusively.)</p>
+<p>And here is a screenshot of what you'll see, approximately:</p>
+<center><img src="data:image/png;base64,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" class=figureimg border=0></center>
+<p>All the normal <b class=command>gdb</b> commands will work in GUI
+mode, and additionally the arrow keys and pgup/pgdown keys will scroll
+the source window (when it has focus, which it does by default). Also,
+you can change which file or function is displayed in the source window
+by giving the command <b class=userinput>list</b> with a location as
+an argument, for example, "<b class=userinput>list hello.c:5</b> to
+bring up the file <tt class=filename>hello.c</tt> on line 5. (See "<a href=#breakpoints>Breakpoints</a>", below, for sample
+locations—the same locations that work with breakpoints will work
+with the <b class=userinput>list</b> command.) As a side note, <b class=userinput>list</b> also works in dumb terminal mode.</p>
+<p>Now, notice that we passed the name of the executable on the command
+line. Another option you have is to just start <b class=command>gdb</b> with nothing else on the command line, then give
+it the command <b class=userinput>file hello</b>, and that will cause
+the executable "hello" to be loaded up.<p>
+<p>Command line arguments! What if you have to get something into <tt class=variable>argv</tt> in your program? Pass them as arguments to
+the <b class=command>run</b> command when you start execution:</p>
+<pre class=screen>$ <b class=userinput>gdb hello</b>
+GNU gdb 6.8
+Copyright (C) 2008 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later &lt;http://gnu.org/licenses/gpl.html&gt;
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.  Type "show copying"
+and "show warranty" for details.
+This GDB was configured as "i486-slackware-linux"...
+(gdb) <b class=userinput>run arg1 arg2</b>
+Starting program: /home/beej/hello arg1 arg2
+Hello, world!
+
+Program exited normally.
+(gdb) 
+</pre>
+<p>Notice where it says "Starting Program", above, it shows the
+arguments "arg1" and "arg2" being passed to "hello".</p>
+<a name=breakpoints></a>
+<h2 class=pbb>Breakpoints</h2>
+<p>Just starting the debugger to run the program straight through isn't
+very useful—we need to stop execution and get into stepping
+mode.
+<p>First, before you issue the <b class=userinput>run</b> command, you
+need to set a breakpoint someplace you'd like to stop. You use the <b class=userinput>break</b> or <b class=userinput>b</b> command, and
+specify a location, which can be a function name, a line number, or a
+source file and line number. These are examples of locations, which are
+used by various other commands as well as <b class=userinput>break</b>:</p>
+<center><table border=0 class=singleborder>
+<tbody><tr><td class=rightpad align=left><b class=userinput>break main</b><td align=left>Break at the beginning of the <tt class=function>main()</tt> function</tr>
+<tr><td class=rightpad align=left><b class=userinput>break 5</b><td align=left>Break at line 5 of the current file</tr>
+<tr><td class=rightpad align=left><b class=userinput>break hello.c:5</b><td align=left>Break at line 5 of <tt class=filename>hello.c</tt></tr>
+</table>
+</center>
+<p>So for this test, let's set a breakpoint at <tt class=function>main()</tt>, and start the program:
+<pre class=screen>$ <b class=userinput>gdb hello</b>
+GNU gdb 6.8
+Copyright (C) 2008 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later &lt;http://gnu.org/licenses/gpl.html&gt;
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.  Type "show copying"
+and "show warranty" for details.
+This GDB was configured as "i486-slackware-linux"...
+(gdb) <b class=userinput>b main</b>
+Breakpoint 1 at 0x8048395: file hello.c, line 5.
+(gdb) <b class=userinput>r</b>
+Starting program: /home/beej/hello 
+
+Breakpoint 1, main () at hello.c:5
+5		printf("Hello, world!\n");
+(gdb)
+</pre>
+<p>As you see, we've arrived at <tt class=function>main()</tt> and
+execution has stopped at the breakpoint we set there. If you're running
+in dumb terminal mode, <b class=command>gdb</b> will print the line it
+will execute next. If you're running in cool GUI mode, the line it will
+execute next will be highlighted in the source window.</p>
+<p>To list the current breakpoints, use the <b class=userinput>info</b> command, like so: "<b class=userinput>info
+breakpoints</b>" (or the shorter "<b class=userinput>i b</b>"):</p>
+<pre class=screen>(gdb) <b class=userinput>b main</b>
+Breakpoint 1 at 0x8048395: file hello.c, line 5.
+(gdb) <b class=userinput>i b</b>
+Num     Type           Disp Enb Address    What
+1       breakpoint     keep y   0x08048395 in main at hello.c:5
+</pre>
+<p>To clear a breakpoint, use the <b class=userinput>clear</b> command
+with the breakpoint location. You can also clear a breakpoint by number
+with the <b class=userinput>delete</b> command.</p>
+<p>Additionally, you can <b class=userinput>enable</b> or <b class=userinput>disable</b> breakpoints, though these two commands
+take a breakpoint number as an argument, not a location! The
+enabled/disabled status of a breakpoint is visible under the "Enb"
+column in the breakpoint listing.</p>
+<pre class=screen>(gdb) <b class=userinput>i b</b>
+Num     Type           Disp Enb Address    What
+1       breakpoint     keep y   0x08048395 in main at hello.c:5
+(gdb) <b class=userinput>disable 1</b>
+(gdb) <b class=userinput>i b</b>
+Num     Type           Disp Enb Address    What
+1       breakpoint     keep n   0x08048395 in main at hello.c:5
+(gdb) <b class=userinput>clear main</b>
+Deleted breakpoint 1 
+(gdb) <b class=userinput>i b</b>
+No breakpoints or watchpoints.
+</pre>
+<a name=stepping></a>
+<h2 class=pbb>Stepping Around</h2>
+<p>Once execution stops at a breakpoint, you can tell the debugger to do
+a few things. Let's start with the <b class=userinput>next</b>
+command (or <b class=userinput>n</b>). This command moves you to the
+next statement in the current function (or returns to the function's
+caller if you've stepped off the end of the function.) Here's a sample
+run; remember that <b class=command>gdb</b> is printing the line <i>it
+will execute next</i> just before the "(gdb)" prompt. Also notice that
+when we run <b class=userinput>next</b> on the <tt class=function>printf()</tt> line, we see the output appear.</p>
+<pre class=screen>(gdb) <b class=userinput>b main</b>
+Breakpoint 1 at 0x8048395: file hello.c, line 5.
+(gdb) <b class=userinput>r</b>
+Starting program: /home/beej/hello 
+
+Breakpoint 1, main () at hello.c:5
+5		printf("Hello, world!\n");
+(gdb) <b class=userinput>next</b>
+Hello, world!
+7		return 0;
+(gdb) <b class=userinput>next</b>
+8	}
+(gdb) <b class=userinput>next</b>
+0xb7d6c6a5 in __libc_start_main () from /lib/libc.so.6
+(gdb) <b class=userinput>next</b>
+Single stepping until exit from function __libc_start_main, 
+which has no line number information.
+
+Program exited normally.
+(gdb) 
+</pre>
+<p>(That weird stuff at the end about <tt class=function>
+__libc_start_main()</tt> shows you that there was another function that
+called your <tt class=function>main()</tt> function! It wasn't
+compiled with debugging information so we can't see the source, but we
+can still step through it—which we do—and the program exits
+normally.)</p>
+<p><mark id=bf631afc-2c3b-4bec-b385-9175d00ab301 data-private-id=aed73217-f8e5-4891-b63c-9fc283702e3d data-next-private-id=ee3e5bb3-2ef2-4d49-b983-00c2ae41fe58 class="f8938515-503d-4466-a87a-f5237b2a9416 a23f2b61-775b-4c11-8b6b-9bee7a63e599 default-orange-da01945e-1964-4d27-8a6c-3331e1fe7f14" tabindex=0>Now, notice that </mark><b class=userinput><mark data-private-id=ee3e5bb3-2ef2-4d49-b983-00c2ae41fe58 data-first-mark-id=bf631afc-2c3b-4bec-b385-9175d00ab301 data-next-private-id=dea0b01b-ea55-4c1a-aa37-d469579ee931 class="f8938515-503d-4466-a87a-f5237b2a9416 a23f2b61-775b-4c11-8b6b-9bee7a63e599 default-orange-da01945e-1964-4d27-8a6c-3331e1fe7f14">next</mark></b><mark data-private-id=dea0b01b-ea55-4c1a-aa37-d469579ee931 data-first-mark-id=bf631afc-2c3b-4bec-b385-9175d00ab301 data-next-private-id=e289367d-7047-4908-93d1-8d330394ff3c class="f8938515-503d-4466-a87a-f5237b2a9416 a23f2b61-775b-4c11-8b6b-9bee7a63e599 default-orange-da01945e-1964-4d27-8a6c-3331e1fe7f14"> </mark><i><mark data-private-id=e289367d-7047-4908-93d1-8d330394ff3c data-first-mark-id=bf631afc-2c3b-4bec-b385-9175d00ab301 data-next-private-id=bd9ddca0-37df-4121-9567-a5c5d6ed9518 class="f8938515-503d-4466-a87a-f5237b2a9416 a23f2b61-775b-4c11-8b6b-9bee7a63e599 default-orange-da01945e-1964-4d27-8a6c-3331e1fe7f14">steps over</mark></i><mark data-private-id=bd9ddca0-37df-4121-9567-a5c5d6ed9518 data-first-mark-id=bf631afc-2c3b-4bec-b385-9175d00ab301 data-next-private-id=a17a5cf5-dee3-4a9b-a08c-2fee5539536e class="f8938515-503d-4466-a87a-f5237b2a9416 a23f2b61-775b-4c11-8b6b-9bee7a63e599 default-orange-da01945e-1964-4d27-8a6c-3331e1fe7f14">
+function calls. This doesn't mean that function doesn't get called; it
+means that </mark><b class=userinput><mark data-private-id=a17a5cf5-dee3-4a9b-a08c-2fee5539536e data-first-mark-id=bf631afc-2c3b-4bec-b385-9175d00ab301 data-next-private-id=feebf49e-6e52-447d-9759-5b671d366835 class="f8938515-503d-4466-a87a-f5237b2a9416 a23f2b61-775b-4c11-8b6b-9bee7a63e599 default-orange-da01945e-1964-4d27-8a6c-3331e1fe7f14">next</mark></b><mark data-private-id=feebf49e-6e52-447d-9759-5b671d366835 data-first-mark-id=bf631afc-2c3b-4bec-b385-9175d00ab301 class="f8938515-503d-4466-a87a-f5237b2a9416 a23f2b61-775b-4c11-8b6b-9bee7a63e599 default-orange-da01945e-1964-4d27-8a6c-3331e1fe7f14"> will execute the function until
+it's done, and then return you to the next line in your current
+function</mark>.</p>
+<p>What if you have a function you want to <i>step into</i> from your
+current function, and trace through that function line-by-line? Use the
+<b class=userinput>step</b> (or <b class=userinput>s</b>) command to
+do this. It works just like <b class=userinput>next</b>, except it
+steps into functions.</p>
+<p>Let's say you're tired of single stepping, and just want the program
+to run again. Use the <b class=userinput>continue</b> (or <b class=userinput>c</b>) command to continue execution.<p>
+<p>What if the program is running but you forgot to set breakpoints?
+You can hit <b class=userinput>CTRL-C</b> and that'll stop the program
+wherever it happens to be and return you to a "(gdb)" prompt. At that
+point, you could set up a proper breakpoint somewhere and <b class=userinput>continue</b> to that breakpoint.</p>
+<p>One final shortcut is that just hitting <b class=userinput>RETURN</b> will repeat the last command entered; this
+will save you typing <b class=userinput>next</b> over and over
+again.</p>
+<a name=exvars></a>
+<h2 class=pbb>Examining Variables</h2>
+<p>If you have some variables you wish to inspect over the course of the
+run, you can <b class=userinput>display</b> them, but only if the
+variable is currently in scope. Each time you step the code, the value
+of the variable will be displayed (if it's in scope).</p>
+<p>(The following output is missing source code output between lines for
+clarity—it's what you'd see in GUI mode. Imagine you're seeing
+the highlight bar bouncing around the source code while you're running
+this:)</p>
+<pre class=screen>(gdb) <b class=userinput>b main</b>
+Breakpoint 1 at 0x8048365: file hello.c, line 5.
+(gdb) <b class=userinput>r</b>
+Starting program: /home/beej/hello 
+
+Breakpoint 1, main () at hello.c:5
+(gdb) <b class=userinput>disp i</b>
+1: i = -1207447872
+(gdb) <b class=userinput>next</b>
+1: i = 1
+(gdb) <b class=userinput>next</b>
+1: i = 1
+(gdb) <b class=userinput>next</b>
+1: i = 2
+(gdb) <b class=userinput>next</b>
+1: i = 2
+(gdb) <b class=userinput>next</b>
+1: i = 4
+(gdb) <b class=userinput>next</b>
+1: i = 4
+(gdb) <b class=userinput>next</b>
+1: i = 4
+(gdb) 
+</pre>
+<p>The number to the left of "i", above, is the display number of the
+variable. Use this number to <b class=userinput>undisplay</b> the
+variable. If you forget the display numbers, you can type <b class=userinput>info display</b> to get them:</p>
+<pre class=screen>(gdb) <b class=userinput>b main</b>
+Breakpoint 1 at 0x8048365: file hello.c, line 5.
+(gdb) <b class=userinput>r</b>
+Starting program: /home/beej/hello 
+
+Breakpoint 1, main () at hello.c:5
+(gdb) <b class=userinput>display i</b>
+1: i = -1207447872
+(gdb) <b class=userinput>info display</b>
+Auto-display expressions now in effect:
+Num Enb Expression
+1:   y  i
+(gdb) <b class=userinput>undisplay 1</b>
+(gdb)
+</pre>
+<p>If you just want to one-off know the value of a variable, you can <b class=userinput>print</b> it. Here we see the value of "i" is 40:</p>
+<pre class=screen>(gdb) <b class=userinput>print i</b>
+$1 = 40
+(gdb)
+</pre>
+<p>(The "$" with the number after it means something, but it's not
+important for beginners.)</p>
+<p>There's also a handy <b class=userinput>printf</b> command that you
+can use to better format your output if you want to:
+<pre class=screen>(gdb) <b class=userinput>printf "%d\n", i</b>
+40
+(gdb) <b class=userinput>printf "%08X\n", i</b>
+00000028
+(gdb)
+</pre>
+<a name=misc></a>
+<a name=misc></a>
+<h2 class=pbb>Misc Stuff</h2>
+<p>This is stuff that doesn't really fit in the earlier sections, but it
+fun enough to list somewhere.</p>
+<a name=stackman></a>
+<h3>Stack Manipulation</h3>
+<p>The command <b class=userinput>backtrace</b> (or <b class=userinput>bt</b>) will show you the current function call
+stack, with the current function at the top, and the callers in order
+beneath it:</p>
+<pre class=screen>(gdb) <b class=userinput>backtrace</b>
+#0  subsubfunction () at hello.c:5
+#1  0x080483a7 in subfunction () at hello.c:10
+#2  0x080483cf in main () at hello.c:16
+(gdb)
+</pre>
+<p>Type <b class=userinput>help stack</b> for more info on what you
+can do with this.</p>
+<a name=morestep></a>
+<h3>Additional Stepping Methods</h3>
+<p>To exit the current function and return to the calling function, use
+the <b class=userinput>finish</b> command.</p>
+<p>To step for a single assembly instruction, use the <b class=userinput>stepi</b> command.</p>
+<p>To continue to a specific location, use the <b class=userinput>advance</b> command, specifying a location like those
+shown in the "<a href=#breakpoints>Breakpoints</a>" section, above.
+Here's an example which advances from the current location until the
+function <tt class=function>subsubfunction()</tt> is called:</p>
+<pre class=screen>Breakpoint 1, main () at hello.c:15
+15		printf("Hello, world!\n");
+(gdb) <b class=userinput>advance subsubfunction</b>
+Hello, world!
+subsubfunction () at hello.c:5
+5		printf("Deepest!\n");
+(gdb) 
+</pre>
+<p><b class=userinput>advance</b> is just shorthand for "continue to
+this temporary breakpoint."</p>
+<a name=jump></a>
+<h3>Jumping to an Arbitrary Section of Code</h3>
+<p>The <b class=userinput>jump</b> command works exactly like <b class=userinput>continue</b>, except it takes a location to jump to as
+an argument. (See the the "<a href=#breakpoints>Breakpoints</a>"
+section, above, for more information on locations.)</p>
+<p>If you need to stop at the jump destination, set a breakpoint there
+first.</p>
+<a name=varmod></a>
+<h3>Changing Variables and Values at Runtime</h3>
+<p>You can use the <b class=userinput>set variable</b> command with an
+expression to evaluate, and this allows you to change the value of a
+variable during the run. You can also shorthand this by just using <b class=userinput>set</b> with a parenthesized expression after it:</p>
+<pre class=screen>Breakpoint 1, main () at hello.c:15
+15		int i = 10;
+(gdb) <b class=userinput>print i</b>
+$1 = -1208234304
+(gdb) <b class=userinput>set (i = 20)</b>
+(gdb) <b class=userinput>print i</b>
+$2 = 20
+(gdb) <b class=userinput>set variable i = 40</b>
+(gdb) <b class=userinput>print i</b>
+$3 = 40
+(gdb) 
+</pre>
+<p>This, along with the <b class=userinput>jump</b> command, can help
+you repeat sections of code without restarting the program.</p>
+<a name=hardwatch></a>
+<h3>Hardware Watchpoints</h3>
+<p>Hardware watchpoints are special breakpoints that will trigger
+whenever an expression changes. Often you just want to know when a
+variable changes (is written to), and for that you can use the <b class=userinput>watch</b> command:</p>
+<pre class=screen>Breakpoint 1, main () at hello.c:5
+5		int i = 1;
+(gdb) <b class=userinput>watch i</b>
+Hardware watchpoint 2: i
+(gdb) <b class=userinput>continue</b>
+Continuing.
+Hardware watchpoint 2: i
+
+Old value = -1208361280
+New value = 2
+main () at hello.c:7
+7		while (i &lt; 100) {
+(gdb) <b class=userinput>continue</b>
+Continuing.
+Hardware watchpoint 2: i
+
+Old value = 2
+New value = 3
+main () at hello.c:7
+7		while (i &lt; 100) {
+(gdb)
+</pre>
+<p>Note that <b class=userinput>watch</b> takes an expression as an
+argument, so you can put a variable name in there, or something more
+complex like <tt class=code>*(p+5)</tt> or <tt class=code>a[15]</tt>. I've even tried it with conditional
+expressions like <tt class=code>i&nbsp;&gt;&nbsp;10</tt>, but have had
+mixed results.</p>
+<p>You can get a list of watch points with <b class=userinput>info
+break</b> or <b class=userinput>info watch</b>, and you can delete
+them by number with the <b class=userinput>delete</b> command.</p>
+<p>Finally, you can use <b class=userinput>rwatch</b> to detect when a
+variable is read, and you can use <b class=userinput>awatch</b> to
+detect when a variable is either read or written.</p>
+<a name=attach></a>
+<h3>Attach to a Running Process</h3>
+<p>If your program is already going and you want to stop it and debug,
+first you'll need the process ID (PID), which will be a number. (Get it
+from Unix's <b class=command>ps</b> command.) Then you'll use the <b class=userinput>attach</b> command with the PID to attach to (and
+break) the running program.</p>
+<p>For this, you can just start <b class=command>gdb</b> with no
+arguments.</p>
+<p>In the following complete run, you'll notice a few things. First I
+attach to the running process, and it tells me it's in some function
+deep down called <tt class=function>__nanosleep_nocancel()</tt>, which
+isn't too surprising since I called <tt class=function>sleep()</tt> in
+my code. Indeed, asking for a <b class=userinput>backtrace</b> shows
+exactly this call stack. So I say <b class=userinput>finish</b> a
+couple times to get back up to <tt class=function>main()</tt>.
+<pre class=screen>$ <b class=command>gdb</b>
+GNU gdb 6.8
+Copyright (C) 2008 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later &lt;http://gnu.org/licenses/gpl.html&gt;
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.  Type "show copying"
+and "show warranty" for details.
+This GDB was configured as "i486-slackware-linux".
+(gdb) <b class=command>attach 3490</b>
+Attaching to process 3490
+Reading symbols from /home/beej/hello...done.
+Reading symbols from /lib/libsafe.so.2...done.
+Loaded symbols for /lib/libsafe.so.2
+Reading symbols from /lib/libc.so.6...done.
+Loaded symbols for /lib/libc.so.6
+Reading symbols from /lib/libdl.so.2...done.
+Loaded symbols for /lib/libdl.so.2
+Reading symbols from /lib/ld-linux.so.2...done.
+Loaded symbols for /lib/ld-linux.so.2
+0xb7eab21b in __nanosleep_nocancel () from /lib/libc.so.6
+(gdb) <b class=command>backtrace </b>
+#0  0xb7eab21b in __nanosleep_nocancel () from /lib/libc.so.6
+#1  0xb7eab05f in sleep () from /lib/libc.so.6
+#2  0x080483ab in main () at hello.c:10
+(gdb) <b class=command>finish</b>
+Run till exit from #0  0xb7eab21b in __nanosleep_nocancel ()
+   from /lib/libc.so.6
+0xb7eab05f in sleep () from /lib/libc.so.6
+(gdb) <b class=command>finish</b>
+Run till exit from #0  0xb7eab05f in sleep () from /lib/libc.so.6
+0x080483ab in main () at hello.c:10
+10			sleep(1);
+(gdb) <b class=command>list</b>
+5	{
+6		int i = 1;
+7	
+8		while (i &lt; 60) {
+9			i++;
+10			sleep(1);
+11		}
+12	
+13		return 0;
+14	}
+(gdb) <b class=command>print i</b>
+$1 = 19
+(gdb) <b class=command>quit</b>
+The program is running.  Quit anyway (and detach it)? (y or n) <b class=command>y</b>
+Detaching from program: /home/beej/hello, process 3490
+</pre>
+<p>Notice that when I get back to <tt class=function>main()</tt>, I
+print the value of <tt>i</tt> and it's 19—because in this case the
+program has been running for 19 seconds, and <tt>i</tt> gets incremented
+once per second.</p>
+<p>Once we've quit the debugger and detached from the program, the
+program returns to running normally.</p>
+<p>Mix this with <b class=userinput>set variable</b>, above, and
+you've got some power!</p>
+<a name=coredump></a>
+<h3>Using Coredumps for Postmortem Analysis</h3>
+<p>Let's say you build and run a program, and it dumps core on you for
+some reason or another:</p>
+<pre class=screen>$ <b class=userinput>cc -g -o foo foo.c</b>
+$ <b class=userinput>./foo</b>
+Segmentation fault (core dumped)
+</pre>
+<p>This means that a core file (with a memory snapshot from the time of
+the crash) has been created with the name "core". If you're not getting
+a core file (that is, it only says "Segmentation fault" and no core file
+is created), you might have your ulimit set too low; try typing <b class=command>ulimit&nbsp;-c&nbsp;unlimited</b> at your shell
+prompt.</p>
+<p>You can fire up <b class=command>gdb</b> with the <b class=option>-c</b> option to specify a core file:</p>
+<pre class=screen>$ <b class=userinput>gdb -tui -c core foo</b>
+</pre>
+<p>And, if in TUI mode, you'll be greeted with a screen of information,
+telling you why the program exited ("signal 11, Segmentation fault"),
+and the highlight will be on the offending line. (In dumb terminal
+mode, the offending line is printed out.)</p>
+<p>In this example, I print the variable that's causing the problem.
+Indeed it is NULL:</p>
+<center><img src="data:image/png;base64,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" class=figureimg border=0></center>
+<p>Even if you don't have all the source code, it's often useful to get
+a <b class=userinput>backtrace</b> from the point the program
+crashed.</p>
+<a name=window></a>
+<h3>Window Functions</h3>
+<p>In TUI mode, you can get a list of existing windows with the <b class=userinput>info win</b> command. You can then change which
+window has focus with the <b class=userinput>focus</b> (or <b class=userinput>fs</b>) command. <b class=userinput>focus</b> takes
+either a window name, or "prev" or "next" as an argument. Valid window
+names are "SRC" (source window), "CMD" (command window), "REGS"
+(registers window), and "ASM" (assembly window). See the next section
+for how to use these other windows.</p>
+<p>Note that when the SRC window has focus, the arrow keys will move the
+source code, but when the CMD window has focus, the arrow keys will
+select the previous and next commands in the command history. (For the
+record, the commands to move the SRC window single lines and single
+pages are <b class=userinput>+</b>, <b class=userinput>-</b>, <b class=userinput>&lt;</b>, and <b class=userinput>&gt;</b>.)</p>
+<pre class=screen>(gdb) <b class=userinput>info win</b>
+        SRC     (36 lines)  &lt;has focus&gt;
+        CMD     (18 lines)
+(gdb) <b class=userinput>fs next</b>
+Focus set to CMD window.
+(gdb) <b class=userinput>info win</b>
+        SRC     (36 lines)
+        CMD     (18 lines)  &lt;has focus&gt;
+(gdb) <b class=userinput>fs SRC</b>
+Focus set to SRC window.
+(gdb)
+</pre>
+<p>(Window names are case in-sensitive.)</p>
+<p>The <b class=userinput>winheight</b> (or <b class=userinput>wh</b>) command sets the height of a particular
+window, but I've had bad luck with this working well.</p>
+<a name=regasm></a>
+<h3>Display Registers and Assembly</h3>
+<p>In TUI mode, the <b class=userinput>layout</b> command controls
+which windows you see. Additionally, the <b class=userinput>tui
+reg</b> allows control of the register window, and will open it if it's
+not already open.</p>
+The commands are:<p></p>
+<center><table border=0 class=singleborder>
+<tbody><tr><td align=left class=rightpad><b class=userinput>layout src</b><td align=left>Standard layout—source on top, command window on the
+bottom</tr>
+<tr><td align=left class=rightpad><b class=userinput>layout asm</b><td align=left>Just like the "src" layout, except it's an assembly window
+on top</tr>
+<tr><td align=left class=rightpad><b class=userinput>layout split</b><td align=left>Three windows: source on top, assembly in the middle, and
+command at the bottom</tr>
+<tr><td align=left class=rightpad><b class=userinput>layout reg</b><td align=left>Opens the register window on top of either source or
+assembly, whichever was opened last</tr>
+<tr><td align=left class=rightpad><b class=userinput>tui&nbsp;reg&nbsp;general</b><td align=left>Show the general registers</tr>
+<tr><td align=left class=rightpad><b class=userinput>tui reg float</b><td align=left>Show the floating point registers</tr>
+<tr><td align=left class=rightpad><b class=userinput>tui&nbsp;reg&nbsp;system</b><td align=left>Show the "system" registers</tr>
+<tr><td align=left class=rightpad><b class=userinput>tui reg next</b><td align=left>Show the next page of registers—this is important
+because there might be pages of registers that aren't in the "general",
+"float", or "system" sets</tr>
+</table></center>
+<p>Here's a nifty screenshot to whet your appetite, showing source and
+assembly in "split" mode:</p>
+<center><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAjwAAAMLCAMAAAB92b0JAAAAAXNSR0IArs4c6QAAAYBQTFRFAAAAAwMDBAQEBwcHCQkJCwsLDAwMDg4OEBAQExMTFRUVFhYWGRkZGhoaHBwcHh4eICAgIyMjJSUlJycnKCgoKysrLCwsLi4uMTExMzMzNTU1Nzc3ODg4Ozs7PDw8Pj4+QEBAQ0NDRERER0dHSUlJS0tLTExMTk5OUFBQU1NTVVVVVlZWWFhYWlpaXV1dX19fYWFhY2NjZGRkZ2dnaWlpa2trbGxsb29vcXFxc3NzdHR0d3d3eXl5enp6fX19f39/gYGBgoKChYWFh4eHiYmJi4uLjIyMj4+PkZGRk5OTlZWVl5eXmZmZmpqanJycnp6eoaGho6OjpKSkpqamqKioqqqqrKysrq6usbGxsrKytbW1tra2uLi4urq6vLy8v7+/wcHBwsLCxcXFxsbGyMjIy8vLzc3Nzs7O0dHR0tLS1dXV19fX2dnZ2tra3d3d39/f4eHh4uLi5eXl5+fn6enp6+vr7Ozs7u7u8PDw8/Pz9PT09/f3+Pj4+/v7/Pz8////63ucoQAAAAlwSFlzAAAOnAAADsQBdfaEgQAAAAd0SU1FB9kGCwUeE/eQKQwAAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAAgAElEQVR42u1diV/TSBueHhQKyI0WVndF3fXWFfxEZXUVD3QVFkFdT/CqKAhCOdqG0vnXvyTzziQzTdNkKEfp+3y/b2PTuedhMkmePi8hCAQCgUAgEAgEAoFAIBCIgw6KQJQBkgeB5EHUDHnI764PA8T+CAcEkicEeV48sD/CAYHkqUCe344lJigtXG1K/LkpuMQOhauNjVcLPKWZJH4KxxnJ48oWvRlvp3SEXP4fua6QZ4RcukRGeMqb5NTdX3Cc65Y8j+7du9V3z8KtI/bh3jQ5Rk+YX7V1/fyZOqSQp62T0s42XsGhtiIt5u+5s+Ohtg8j1uFzQPIkS04OmDT53fwqYn2IKOSJnKD0RJSTx/pEV/B52UHDvaDkuee1YbbI09r1nwmTIQOMKPbhkLXymMsRXVjhKw+u8AcNye2T5zq5fO/qJUo7Yrce5PlB7HnshegG+X20HwcbyVNCns1ryUjHQ/MuvZWQFX4oDDU2DhU4eTaHmmIncbCRPAgEkgeB5EHsf/IMPAqSEFFPMp1gnAjMMkQ9kSfcZQuHDKFNnuSr9YJWTckl8rafkK6N0q/mDaXInkpViAT2PzzK7Cng3O5D8gyd0ZuXEy9IJlaJC3rkCVAiYn9ctjTnZWSk7TshaXuR6SncXF89QUjTVDY7xqfa+o/1/9RC9pF5aHi6npuMuwqInv1AhpaNzDAhPwxqGJd5SlYmOfLNeJ90yMNq+HA2ipNc6+Q5ndsyjEKuHXhCb0RufSXk5XQidkYlz9cbkSnz8OxtU/zlQ1FAy62V2QvNxT7SfFQsLJCSf7oZmRwX5IEaLsyu3GrGaa71lWelYeyy4AmNkcN50lhsdV1kgDxJmiC/FUii2E3IsZ8892RmzPzcVDgfdzJASvenFYc8dg0muscykzjPtU2ezi/kS6fCk84tUkqeLvNkr/kdzZnI8uxz6csWbX5/t5EeEPtkltL9yXDveVhD45fTczjPNU2ejc1Crpi7JvNErDzd1kmLSv3OyrPVIBVw7Pnao17zGLmxzDP4rjxAnt5Ha9PHcJr3C3liRwqxWPiKnp/84191kSGvphKx0+bnJnMvQ2Kb/eSBtf+9HnlmHqafNpLO310ltN5Zbf0jTq4v2kyxVjFICXSeuxGZnLBIOO+qYfVOK07y/iFPMNWqishKbPyceb9uWPdJST61TdPZ7GP7VixvHCfDqx9HrbutHxtj5iHxZM34cU0qJNr2KW+krQ0zub+RuQApoUyS+m7MNKv0xHut/XXZQiCQPAgkD6IWyBP/E8mD0OEErjwIvGwh9o485g30TLtOTVWVZADkwjxetePL9X1FnpHWyNisTk1VlWT4l4Lk2b+XrVROp6ZqSDIgCc8OWgxPnQYnDyoz9hd5Bj+Er6c6kgxOHsjO8pXRaTDyoDJjf5GnJfOrTk3VkGQI8oDews5XRqcB5EFlxn4iT+zjsE5FVZFkiMuWK0s5nYYoGJUZ+4c8U//o1FMdSQYkUcjjrdOQyIPKjH1BntHXEa2KqiLJgCQyecroNFCZsf/IQzcNYyN8PdWRZEASyA6Feeo0UJmxT++2EAgkDwLJg6gB8qAkA6HHCVx5EHjZQuwdeebz+Y/9OG4IHfK0k8iNnzhuCL3LVuzmFxw3hA55unL0YxOOG0Jv5WmZuYPjhtC82zqawXFD6JJnA8cNoUOeXpJ8O4XjhtAhz5KRfYYbZoTuZQuBQPIgkDyIGiAPSjIQepzAlQeBly3EXpJnUs88oIyjRcWUhLw+Xj6JXc71UZzI2iBPX7oazhMh7Cv605XKia8mcSZrgjwzp7TII9tjgKMFEGBrbnJljJD/LW+mj6gpCfl3mJCBBfMfr4Z4cBKwxxCGGM+GcSZrgTznH2t63kj2GNLK00NP09PLhJxrj4x+KUlJVk1CRdZ6ScJoFsFJFEOMK29xJmuBPN9btkcet7+F+Ka30GtbWZAjuZKUSWp5YDy9Tc7POiECFEOMYys4k7VAnr/JtsijWhSwb8z/bRJyaSGX3yxJ2Vm00pz4Rp5fdYKTKIYYzEUFsd/JY6Nj2+TpVslTIMmt45YFhpqSrTzR9d5cK648NX+rXpWVhzlaSORppT2xyVLykEzK+u/47EfiBCdh33BDDNzzHGzyKPYY4GghkYeM5pf/KpSmnLBvpU5S68CCk4hQJWCIgXdbNUOe3Ybvcx4bDficB8lTBq+OV0iAT5iRPIgDTB6UZCD0OIErDwIvW4i9I495j2xc1Krq39w0jnd9k0dbj3FI67k0AslD5BcSiDq9bGXWxht0arJefSLqmzyHyaGZcZ2ars7jaOPdFjm6plHRWuEUjjaSR488ZCSNo13v5GkjLe+0LluHDRzteifPurH+T1xrw4x3W3jZ0kUXkgfJo4sm2oPDjeTRxOgqOorVL3ns1+81CZznnSJPOEkGkgehfdlC8iD8yNNDDePL4TIJjYuJ1pndnPgfSfenhVj57ySsn07GkDx7QJ6Cx/NgnnD4VD6f2bs1RCaPDzae/Ifk2SPypHLiwd6Hs1FXwuTc7rKlPx6zOfMg2fqe0q44aWiYlL8LwDOc590kT+TurCDPhdmVW808YYaMJvsXd32tWSAPi6OpkpVH+tRoQ/3S/i/O8y7ueXJba92E5HJ5mrNWoO6xzCQkXCRjxf+d2gPybNLvCX/yeK88S0eQPLu88sQevBYrDyHxy+k5SLhizmK6affJE3P9IxR58LK1B3uerCBP76O16WM84VZ8k37dn+RpsIHk2Xvy/PVdkGf1Tqsr4R9j9PqpvSPPOlkMuPJsfottbuKeZy+e86R/ER+jUsKfRxv6dnHD/L7Bur/aEOShN5OHpuXv/B4MUjrXguTBJ8yaGB9C8iB5NHFlBsmD5MF3WzVNHnTJQOhxAo0OENu+bOGQIbTJYxjGJv6IBqG78gw+x3FDaJJn5iyOG0KPPC25OI4bQo881/CqhdAlzye8aiE0ydOex6sWQpM8N9GWEqFLnjRetRD6t+oIBJIHgeRB1AB5UJKBUDlBjuPKg8DLFmJ/k+fM0mb6yK43U7hhdm1Y/503vA0OXx8XSTwRn8qvDhDS9tl4GSMlEQIxsspOk8c4G7n7de/IU+YzQ8VopGNvE4lDhLx4EHs/YnFJik2KkVV2nDw0Ar8m3R1kLBfMWKG/cHN99QQhaVhyGHkanq7nJl0vS/61ghyn1VUpevYD/+eGHWU7YnSS85+tf0lRkTGyyo6TJ30uend899r30ort1TffQ29Ebn11lhx2ePa2Kf7yoZN49UjpqtRya2WWx+BupX+tpztJG22a7rNd7KV47BhZZcfJ05Mpfm3cvfaNjMWzXUMTPTRGDucV8iSK3YQc+ynSJmm8hDyTmbFu8aGLDkcevyFdheRcry2lPbbiSoqRVXacPIvnovde7F77fvsw8G1ofNAihE0KN3k6ac6Ecw3tLJbuh+bSl53rWpvJrv6seTAvvfbKY/MRgJFVDtyeJ54dPfX862GVPPb+JLElB/7yWnnIsedrj3r57mczZjXe2vOc+1yy8mBkld2427ozt4sNnJuPvFuPqORpKvaZ/51+2kg6f3ftrlNed2Ktd1bFrfywecNl3m3dj74bKdnzYGSVHSfP2aXCXGoXG/jkPzI6Q4A8JwyDGoZ1fz2SN46TxJM148c1J+2EefPkJHHdb/F/dHw20l3Ocx75bgsjq+w4efZzZ/pDXngapOc8GFmlrslDXh0PlVx+woyRVeqbPNsDRlbZQfKgJAOhcgIlGQi8bCH2O3mOL+b/q4kfbvkoMxB7RJ7Mn5GJv3HcEDrkoTHySy08xxfKDOk9PGKvyXN0vRZ61uNFHqTQ3l62rkTHjdohDwRf4TFYOr7hlO8heU4srtxdrdmVB7HXt+qXZ5A8CB3ydEQPzV/GPQ9ChzxD2Y3RGuiXlzLDRGoVp3xvL1s1jMGnOOVIHk1MDOCUI3kQNUYelGQgVE6gJAOBly3EfidP8tW69axE/ABhn6OcnwbAstWAHqmeGYgdIM/QGWuoudHEvofvY0H75xbQI8UzA7Ejly1rOhyjif2KoWUjM0wUPw126Ck8yn9stk7/O+wmmPQrLsSOkccxmtinaC72keajRPHTYIceOhKZsp8WMlsNTh72+1F8g7HT5HGMJvYpmgrn4w4xwE8DDj20kfy2TMSP2zlf2C/XUbWx8ysPN5rYr/j93UZ6gMh+GnDo2SLEZj7YanDyuD0zEDu75zn3eX93LXLDWl3cfhpw6KEJ8ttKuZUHsYPkiR0pxGKO0cQ+ResfcXJ9kSh+Guxg2Yw9m7BSMVsN1iPc8+wCeViU+/3+nKftU95IWxtmyU+DHXoKj/OfWqzvJoaha/YAsLstVG3s5GWr5uGsLZKtBnhmoGoDyROIPJKtBjxhRtUGkicYeRC7RR6UZCBUTqAkA4GXLcR+Jw8IGLiOYcfxbe0GztKBIQ8TMHAdw87j9BrO0sG5bO3yTzAxJASSRxvocIvk0Ubj1lGcJiSPJm7QWZwnJI8W4vmTOE0HhTwgYOA6hp3f82zhLB0Y8oCAgesYdv5uCzfMB+iytcvAW3UkjzYuLuEsIXn0MPfzEs7SASAPSjIQKidQkoE4qHsexMEhD2gxnqwZM+04fEgeHUnGSGtkDN8aIHk0X0+QVA6HD8mjSZ7BDzh8SB498rRkfsXhQ/JokSf2Ea2QkDya5Jn6BwcPyaMnyRh9HcHBQ/LoSTLopmFgBFgkDz5hRiB5EEgexEEkD0oyEConUJKBwMsWYr+Th0kyTszn8x/796C9lX9LUSshVeqSPLYk41A7idz4uS/JUzMhVerysgXzF7v5ZXfYcmElP8Qjj/ywYhZftlrA/m9911O4ub56gqff/yFVkDxdOfqxaVfIU5xIxHt45BFWuSCP/Z3lyX3rq7hq8ZAq+GPBfbzytMzc2RXy0ENERB5RyWN/10NjrrARIqQKBiDZx+QhRzO7t8mBkCMqeQqEuP/FVp79HlIFyWORZ2P3yAMhRyAOSecWIf1lyFMLIVXqlzy2JON8L0m+ndrF2yuIPEKStNPcq2/2kwdlyCNCquCeZx+Sx5ZkXF8yss+adpE8EHmEkPsbmQtkePXjaDny8Oc8GIBkP162agQYgATJow0MQILkQRwM8qAkA6FyAiUZCLxsIfY7eUTEkslwz1EwAAmSh7tkkL50yIdwGIAEycMfyM2cCkkedDVF8gB5zj8O+/gfA5AgeRh5Yt9bwpIHA5AgeRh5Rv4O/+IRA5AgeWzWPLdfj3aEqQkDkCB5RMSS0HseDECC5OERS8KSB/U1SB7tmvBWHcmjXRMGIEHy6FaEAUjqmzwoyUConEBJBmK/73kQSB4myeihhmFcxOFD8mhIMvChDUL79QSSB6FPHppZG2/A4UPyaJCn8TA5NDOOw4fk0TU6QF0pkgfJg9gt8tiSjIE20vIOL1tIHh1Jxu11Y/2fOA4fkgefMCOQPAgkD+IAkgclGQiVEyjJQOBlC7HfyQMuGfGp/Cr6tiF5tFwyxt4mEodw+JA8Oq8nNlI4dkgePfK00r/W0504fEgeDfJ00eHI4zc4fEgeDfK00Tjpz+LwIXk0yBPdjJEUkgfJo+WS8XrYvOHC4UPy6LhkdHw20l04fEgefMKMQPIgkDyIg0YeBAKBQCAQCAQCgUAgEAjEgcEGRSAUBCYP/v0gdDmB5EEgeRBIHgSSB4HkQSB5fHAPxwqhywlceRB42ULsEXnaPhsvY+LUmaXN9BHXycmCOHliPp//2C+SwHe+6KoiPeeNkBEO5I45zX19nJChzGJ5S5Dro64PvinrnjwvHsTej/AzceNs5O5X52RfuiBOHmonkRs/RRL23S4ibHgMqWNOc/vThCS3en2CXMZXk+Lf/inrnTwRo5Oc/0ySK32kbbW3nUasH47CSUJmTpkjDidNxG5+cT7Z37kQPfuhZ2tucmWMkP8t24tT2l4sego311dPEPLhbLQK5Gl4up6bjPMafCB3zGnuv8MWJXou/jQPUNjQspEZNst/lP/YbCV5Nuwij5SyaSqbHXPKrHfytNGm6b41Qn6fj783xyx9Lnp3XJw8/9ieMXaSdOXoxybxCb7jaLm1Mnuhh56mp5cJOdceGf3C57uH3ojcMpeqC7Mrt5q3TZ5nb5viLx+KGnyuWnLHRHNXLc5dXV06+efbU6yw5mIfaT5qtnMkMvXUSnLF9dNZKSV5OZ2InRFl1j15ugrJuV7D/MfTuRlrhjLFr438ZOx7C5t++6TFkJk7/BP/jm8oMmPd1vz2Fnrz9okjOYc8MXLYPtk9lpncJnkSRbOaYz9FDT77LaljorlJaluVJ26+vRSFwpoK5+N2OxvJb8vWl8dWXOW4UzYWW9lJNli48lhXISvoRD+9YK71i+ei917wkyN/2zMGJy0czfBP8B3HXPpy3Jpf83+bhFxayOU3BXlEOK/45fTcNsnTSXMmsqIGv5XH3THR3M6i9d8Lr04NrS4OQmG/v9tID5CeLUJstgHVGaSUnVtw1i4TyWNtDc6Z25vo10fLTaTD2fOYJ5/bAo+ODrHnIUc3eBL4TpR17Pnao16bPAVzo3Cc9BdU8vQ+Wps+to1uddsrz1YD24pADf57Hqdjorls5YlbO+FLa1s8wljkxrK58iTIbyvqyiOl5CsPKxPJQ17cj74zb0pGX5EH06TBvJW6MydOslmHk+d7SfLtlEhScvvTemcVyNNKe2KTJeRZvdO6rW41mVsTQqafNpLO30UNfndb7o45zc0w/7zmYte5ZSjsjzi5vmjvzZ5NOHse3j1XSvJqKhE77SoTn/NYj0OOrbaQ2PxFcnapMJdyPSOxR5CdvL5kZJ818U9e985RIA8ZzS//VSAnDIMaRpKTJ7rdfo3kjeMk8WTN+HENagjwnId3TDR3Ana617MrJ1lhbZ/yRtrcMBce5z+1OHdbqVWipiRN09nsY1eZ9U6eeoP1nMf/OVIDe84z+LQehwfJ44tXxyuQB54wTwwgeZA8oZ4j1TsCcwI9CBEq8NcTCLxsIWrjVp0juCRDKDN84C3JmKzO5qLiHoUlUJUZU4ZxOMRBzn7wBRq7IskQyozQqJaUoxJ5BjN0eaBEmdFZbAx1kLLXgUBjVyQZzkmOSpIMPt1MGxFaoMHK5IWlFrKP/MnTtHWm0NytKjN+WM8tDwc/iJEA8vhKOeqOPNqSDDhwVJZkwEcoM7RAg5XJC/t6IzLlT572YqpQ2j++XgU98OwAfylH3ZFHV5LhnGT7mMqSjFwuT3M5R8oRXqBhlgmFJa2XmBUuW+8Xts6U9C8seUR2gK+Uow5XHj1JhuukhUCSDOu/jpQjpECDlQmFdVnyiQrkiVwppseU/mmsPJCdwV/KUZd7Hh1JRoey56ksyWD/5dqIsAINKBMKC7LymOn6skr/QpOHZ+c3FL5Sjjq829KTZDjKDI5Kkgx5VsIKNKBMXlj6euSZP3laTx8uXPhRoswISR4xEh4CjRIpR70+5wkvyRDKDNf9lq8kQ77HDi3QYGXywlI/NsYq3G29ydPMyRJlRljy8JHwEGiUSDnwCfPBQVXfdJYXaBysF6pInh2Y1fICDSQPYn9wtHbIg9FNENqcwJUHgZctxJ7eqnMElmQEutJ7STIMw9is1vNY3gg/B43qmGUgeTwTakoytrNNHHxe7b2qT2uqYpaB5PFMqCvJsIQIn6TX4kElGWapZ8NLMkD4wB8ScjUEFF2ePCHMMlQLjGfDSB7/hLqSDFuIoCPJMJPm4uElGSB8APIINQQUXZ48wc0ySiwwrrxF8vgn1JVk2EIE53VgYEmGeeIau2qFk2SA8AHII9QQYMBRnjzBzTJKLDCOrSB5Kq08epIMRYgQWJJh4tNZtqcIJcmA+nhhoIYouOrw2pqHMcsoscBwm2UgecrteXQkGbYQwSWBCirJMLdQeeuPPqwkA4QP1gwzewxbDcGL7vbd8wQzyyixwMCVp/Ldlp4kwxYiSC8Lg0oybtr+EmElGSB8iG32kwdmDaCG4EUzBw3vu62gZhklFhi45wn4nCe0JMNL9h1MkpG2r1phJRlc+DC8+nG0QIQaghdtO2j4POcJYJZRYoGBd1tVSbgPUO3Xj2XNMgQa8DkPkqcMypllCOATZiQPYmfIgy4ZCBUoyUDgZQtRG7fqHGECl1SGlyQj+Wq9QEqVEtXfCEl6C9wy7Qh5tAOXaCI5dKZASpQS1SePrLdA8uwEebQDl4COwUFgSYb9vgxqCKzM8JdkeJLHrbcABcnBcrTYc/Jou2SAjoEjhCTDOvAaAisz/CUZXpD0FqAgOViOFntOHl1JhiuCiL03CiHJsM467hMBlRn+kgxPuPUWoCA5WI4W+2Dl0ZNk8AgigDCSDLbycPeJgMoMf0mGFyS9Bc9+oBwt9sWeR0eSkRBOEQzBJRliz2NVG1iZ4S/J8IKktwAFycFytNgHd1uagUtAx+AgqCQjdqQQi/EaAisz/CUZ3nDpLUBBcrAcLfbLc57wLhmgY3AjmCTDXs54DYGVGRUkGd5w9BbiZu0gOVrsPXlqBNV5UIOPe5A8SB4kD5KnhsmDLhkIbU7gW3VEXVy2EPv3Vp0jjCQD4nv4wEeSAYcdRIAgI6ja2CZ5tCUZEN8jLECSAYedQ4AgI6ja2CZ5tCUZEN/DQShJBj8El2RA0Ue+Ge+TZGDBPPVqyJ8ZFYOMoGpjm+TRlmQof6khJRn8EEKSwYr+ejMyOU4ia70kYfhnDBBkBFUb2yOPduASmTxhJRnOIagkgxWdhDebT2+T87MVsgQIMoKqjW2uPHqSDIU8YSUZziGoJIMV3QWaihPfyPOr/jkCBBlB1cb29zw6kgz1shVSksEPwSUZUDSsPNH13lyF9/EBgoygamO7d1uakoySu5Nwkgw4BJdkwAv7uRuRSUtTMT77sWIenyAjHnFIULWh+5wnvCTD49Y2jCQDDiEkGazo1Hdjxtoon6QBPCzKBxnxiEOCqo3w5KkrCBLXSxwSJM8OkKde4pAgeXaAPNtKguQh6JKBKAVKMhB42ULUxq06RwBJxvHF/H/xYJqK8pIMXtgObmECSDIQ2yRPWElGJPNnZOJvfU0FyweF7SB5AkgyENskj4YkI0Z+SXtMXVhJhlXYrrlklEQlQVSBPKElGRZ5jq6XkCesJAP0HbvlklESlQRRBfKEl2RkrkTHDZU8GpIMu7DdcskoiUqCqMrKE1KSQU4srtxdVcmjIcmwC9stl4ySqCSIKu15QkkyLFyeKblshZdk2IXtlktGSVQSRFXutkJKMkhH9ND8ZSKkFQKhJBm8sN1yySiJSoKo3nOeEJKMoeyGbawP0gr3/VZwSQYvbLdcMkqikiCqQZ4aAf4wBsmD5EHyIHnqnjzokoHQ5gS+VUfUxWULsX9v1TmCSzLMO+CZ9goV+LhkQNE7uQNiieT+edaO4g1d8uhKMkZaI2OzGq3jUg676J0kz2CGLg+oEVK8akfxhi55tiHJIKmcu7SQkgy76OCSDCHCsPODo4UfmrbOFJq7lf4ptXPyVPTTQPJ4JtyGJIMMfnDKCivJgKIDSzK4CAPIwxwt/NBeTBVK+yfXDgjgp4Hk8Uq4DUlGS+ZXUVRYSQYvOrAkg4swOHkaK/6g/P3C1pmS/qm1MwTw00DyeK48upKM2EeXqiqsJAOKJoElGbIII4iVReRKMT2m9K+kdhsB/DSQPOX2PHqSjKl/3GWFlGRA0cElGYSJMECSAY4WlXbVfVmlf0rt/Dahsp8Gksf7bktTkjH6OiKXFtIlg30KLMkAEQZIMsDRwjfD6cOFCz+U/im1e5llqH4aSJ6Kz3nCSzLopmEoNYVyyWDnAksyQIQBkowA90JNb/I0c1Ltn1y7l1mG6qeB5NlmwtpEgIdBaJaB5NGefzTLQPLsDfPqmzxZvgNBbAMHizyhJBk4+Uge7csWTj6Sx5c8PeYd85fDZcizcrThbEGMxH+dsb5v1Dl5KSZOvu9NJH5NUzrbmThj0AXS0NAwVWFcfyRLz62fTlplmrnjDdueuN54rPyXC/Z3cv+gdhmeQ2Dij1lKn7Z2zSglOnh4qw7IYz2RT5chz7mbhRP3+GgYDS+Kt1NUnEz3xcTJzDItPuygxUMTxT//LhnHwNh48h9kHT+//T97n2aMHyLtM1Tun6t2FzyHgNIv/SbZovNTHWVrM1o36oI8TD4hBwuxEhbjS/T5UbrelqYrLfM/SZHONVE4SenAG3O44KSJzfu/mJ8K9Eufx6xtvfhtIZq61DZM6eP2uPXH22+vCwuxB8nW966x51kHXlL624utgCyBor8daTixQWe6zVOnn/qRJxv9L7a2QOX+edLNcwhM/PlIkGfDGEo2Xt5ciF1LHFszixhO/LpmL8yP6oE8kbuzgjxCBmElXCHZC+lmSt/0bp4Yo7TvxdbtQcpPPr9mDzU7SRcbya9Zmzyfk+Zlq7V50HBmYG207bfpBfKKvGqn9MVy8a9f+EQtkIfF0VQpeVYbNymd/q1tdC0QeaDo1IPipUFabJ6n+YY1P/IsR+as75T+eeXwHAITrdbF65/Wzrf/nnp76WR28+yNBXK/eHGQ2ochK8nEqTrY8+S21rpdogiQQVgJf8Q2UvNxcxyGUgPW0B6KpHIUThYOr7Hpt09a8z1wm9JDE1uDDTT3nWYGBsUEXGodXrAmZj42n7BPfGt0yLNJv5snGxsTpLHRmb5H7Kq1MNx6KdD1yS56g+TphzaztXfp8+P+l60T3dH/KFX655XDcwjMRcdst4n8g1PPtvIRs3efOhZIzqrdPrRbX35qq4eVJ/bgtevRF8gg2MpTpF+bre0NmTZX8K4XWyPnKJy8z7Y2cNLC50OUvu9su93CPjWLCUj1TW5aE2P9j9LJ7sZETJAnxmdMXnmOvbQPm5N9qUDksYtejFI6b2603x+h5//xJ09xItI3TOX+qTnMbTulnkNA6dKfcP0AACAASURBVFLESjF9+s2T1s5xk/aNjU0LrHY4mLD+KOphz5MV5BEyCL7neWFub7ZSw+1Z6trzmCfP27l/OrsA63pl4d8BlTz00/nm4XmY4Y3oLE1XIs9ywvrDnr/WcuETDU4evvJsJecbV/3JY36XFl2B/pXd85QMgbnPsVcew+zN/LPmqMGunXlryVmARtTLykP++i7II2QQ7G5rZOukeatx6zS9eYEacbjbYifZUMPJ5/N049RFc/+8lemZpDMrdO3koHsOMrdbYYYzZKFwqSx5Nr/FNs1puX/B3lfczgS9rWKLWuph8fIV8/Pgb7/a2+JIukyGzKvvsekuKvdP1C5RyHMIzLbNsd1c5MeL9gtDObr0xtq+XRqyd3GXrtTNnscw0r+Ij9GS5zyb9FPLGt3smaIvO2KprxRO8vlmJ8c6G5oumX+8T5qStyi9m4wnrxrK/Raf4VuJ9tEYfd8QJw0NGw55XA/VzH2pfdXaCn5PzoqeOxwfsHbY78gj+/y9RMOs993WqQRpfUeV/vHa51qU5zwlQ2DebY2xr8ea2t7lh1oauh5bd1u/Wndb5k3Xap3cbdXpE2a/S9r4UOX86f5KBdfDcx4kTwmuzAQo4PRshYLr4QkzvtvaSVbWsSQDgdCWZCAQ2pctBEKfPLouGUHg5ZIh3DVCu2R0hSN76I5tuyl2mUHcQw4MeXRdMnTB3TW25ZIRBGE7tm2wHum6h9QiebRdMlgkEBcCu2QweUhYlwxiWKVBDQF+txW6Y7zVYJYRvmPCecPqX4iO1S55tF0yIBIIRwiXDNtdI6xLBmSHGgJ4WITuGG81RDoJ3THHecPqX5iO1Sx5dF0yRCQQuNyHcMmw3DVCu2Rw8rAaAnhYhO8YazWYZYTumNMjcA8J3rEaXnn0XDJEJBCGEC4ZtrtGeJcMXpBdQwAPi/AdY63uBLOMsB0TPeLuIcE7VtN7Hh2XDGXlCeGSYbtr6LhkCPIUgnhYhO4YtDohzDLCdUw4bzD3kDAdq+G7LU2XDIgE4iCgS4Zw1wjnkqGSp7KHRdiO8VZDpJPQHZP7F6Zjtf6cJ7xLBosEIiGQS4Zw1wjnkqGQJ4CHReiOsVYTiHQSumPwAfpXm/daB/cJs2uTg8EEkDzhcHUOyYPk0cJ9wxXHGMmz5+TBwCUIbU7gW3VEvex5EPv0Vp1j1yQZ8an8arhoIV6FzRsVNz+e/TPx+rgSsUTdR10fRfJUSrhHkoyxt4nEoe33tfLO2bN/hPSn1YglalHx1SSSxz+htiRDW7nAJAsbKfufwZULcmFcEFKRPJ79M/HvsBqxBIKhOGqPZ8NIHv+E2pIMXeUCsSULrfSv9XRnKOWCVBgXhFQkj2f/TKxaFy8pYgkEQ3HUHlfeInn8E+pKMnSVC4RJFrrocOTxGythYOWCuzDxWrYieTz7Z6421F403RFLIBiKo/Y4toLkqbTyaEoyNJULIFloMyev384dWLngLkwIQvzIYxhGmf4R0lm0UkgRS0Dm4ag9DueRPJX3PDqSDF3lAkgWopsxu8wQygV3YWLl6Q6y5ynpH195pIglEAzFUXvgylP5bktTkqGrXADJwuth84YrlHJBKowLQpqKfZXutrz6Z1582YbdFbEEgqE4ag/c8wR8zhNekqGrXADJQsdnI90VQrmgFCYEISN543iA5zxK/wiZgFspJ2IJ3GY5ag+826pKwgOI/nSlJ0cN+JwHyVMGr45XIA8+YUbyhEWdqz1QkoHQBkoyEHjZQtTGrTpHcDOJ5Kv1irsDH0lGCGGH7saEJZL7J0OSZCDCk0fXTCI5dEZra8kkGdsUdgQhz2CGLg8o/ZMhSzIQocmjbSZRMoOhJBlc2BFckjG0bGSG+RNmkE/4oWnrTKG5W+mf7O0hSzJEDRUNOJA8RFOSIfQWMnlCSjK4sCOwJKO52EeajwryMPmEH9qLqUJp/2RvD0mSwWuobMCB5CG6kgwCeguJPGElGSDsIIElGU2F83FCHPI0VvqtOnm/sHVG7Z/6C3u3JIPXUNmAA8lDdCUZXG8hkSesJAOEHSS4JOP3dxvpAUGeyi4ZJHKlmB5T+qd4e0iSDF5DgKKRPJqSDKG3kC9bISUZFi7PhDOTiNxYtme/v8DlE5V21X1ZpX/KyiNJMqCGAAYcSB6iKckQeovYkULMfQ8cTpIBwo7AkozWP+Lk+iKJbfaTB+CS4b8xaT19uHDhh9I/IeXgxHdJMqCGIAYcSB5dSQaYSZBS+/MwkgwQdgSWZLR9yhvpo4QMr34cLQS5JWp6k6eZk2r/uJQjtQrJHEkG1BDEgAPJc+CfMPs9DBp8uq3nj0ieeibPxACSB8mzq5RD8jhASQZCmxO48iDwsoXY01t1jjDxPSZ1JBm8lKrE9/Dfn3hJMoIISZA8gRNqx/fQizzCS6lKfA9f8nhKMnSFJEger4T6kgwRpwMQWJJhl0JCxvcQv6pixXD5BC+6FN6SDLQzrCZ5tCUZTpwOG4ElGVAKCRnfA5QSQB4hn+BFl8JbkoHkqSZ5dCUZTpwOtv8JI8lgpYSL7wFKCSCPkE/EytsReEkykDxVXnn0JBlO5BEbISQZrJSw8T24hwUUJgk0vOElyUDyVH3PoyPJEHE6AMElGeC1ETK+ByglQJJBQD7hRx4vSQaSp8p3W7qSDHUagkkyuNdG2PgeoJQASQaXT/iQx1uSUSIkQWz/OY+GJKN02oJIMngpYeN7cKUEk2QI+UR58nhLMjyEJAh98tQINK42eIFC8iB5kDy7Tx7ETpIHr/0IbU7gW3VEXVy2EPv3Vp0juCQjSOQRH0lGEEWHDyBiiV/gksAdA3kI31U5sU3KVuuN1onM+r8NSspa26vtjiRDM/KIKEVP0aFuoH3mJnDHQB7C47yL2CYh9+1NS7cTyS9Pgjew9smjLcmAyCMOQkoymKIjuEsG+FtwQUjFuQnVMUseAs4brpNOx0ACwusDWw0n4In1G7Ix6/3uKcp/UcZS/rCek14O0c2aIo+uJINHHuEIK8mAooMHLgF/C6loP/KE6Bix5SHcecM56XQMJCC8Pgja4gp48pSQtaPH59cmKDfZkBoYIj5LLZFHV5LhRB6xEVaS4Sg6AkoyXL8yd4r2I0+4jmV+Fc4b4qSrYyABgfrAVsMd8GSZtNDGjUvRB5SbbCgNDByfpbZWHj1JhhN5xEZYSYaj6AgoyeD+FlLR/itP8I7Z8hAQfbh663QMJCBQHwRt6ZQCnnRudVqFU26yoTQwcHyWWtvz6EgyeOQRjpCSDK7oCCzJgJVHFA0RS7p99zxBO2bLQ8B5o0PZ89gdI0wCAvVB0JaEK+DJCmmmSbbygMmG1MAwZiA1dbelKcmAyCOuO9VQkgw4FzxwCfO3EEVDxBKfwCWBOwbyEHDecGKbuDoGEhBeHwRtcQU8mSBk5cTAwvok5SYb0LIk7QzVzVp8zhNekgGRR6TbkhCSDDgX/CYE/C2EIAQilpQPXBK4YyAP4XdNIraJq2PcowPqg6AtPOAJE4uMvmPlcpMNaNn9jcwFUiv3WviEeZchdjVzk+2R1lp/gYvk2RPykMb7S/kXSB6EDnlq8omyNidQkoHQ5gSuPAi8bCH29FadI7AkI9C13UeSsY3AJUHfV/u4ZMgnMX6JLnk0JRm6G0MoZTuBSwKSx88lQzqJ8Ut0yaMrySgNHRJKkhE+cAmUmVrIPiqIgw/8XDJE/4A8GL9Ejzy6kgw1dEhISUbowCW8zK83IlMFcfCBn0sGPwnA+CWa5NGVZCihQ0K7ZIQNXAJlJq33jgV+8IWPS4Y4CcD4Jborj54kQ4nvEdolI3TgElZml1VtgR984eOSIU4yYPySbex5dCQZauiQ0C4ZIQOXQJkhVh4flwx+kt8mYPwS3bstPUlGaeiQcJKM0IFLoMz09cgz5+CXwc8lg/cP45dU4zlPaEmG191IGElG2MAlXIuR+rEx5hz87rb8XDJ4/zB+yfbIc3AR4FEUxi9B8mjPP8YvQfLsDfPqmzwoyUBocwJXHgRethB7eqvOESZwSWV0eTbFLrMqgUv8XSs8JBnQB+8NjedImHh9XFFtqNmvj9YrebQDl+iC2WNUJXCJ777WS5IBffDO5TkShPSnVdWGmj2+mqxP8mi7ZICAwUFQSYYIeBIqcAm4ZEANPbIXhWf6MpIMqw+lepJyI2Hi32FVtQHZneekz4brkzzagUvAKYIjsCTDCXgSKnAJuGRADT2KF4UHvCUZrA+qnoRdtbxGwsSqdfGSVBuQ3VFtXHlbn+TRlWSAgEHsY4JKMhx7jHCBS+C36lBDj+JF4YUykgyrD4qeBDZoXiNh/V7YXl7dqg3I7qg2jq3U68qjJ8kAiwheVGBJhrDHCBm4BFwyoIYexYvCC2UkGVYfVL2FYRhlRsKsuGilkFQbPIiKKKVs5J062PPoSDISQsDAEFSSIQKehAxcIlYeu4YexYuizGbaS5Jh9UHVk4g9T8lI8JVHUm1Adke1Ua8rj7ZLBjhFOAgmyeCHsIFLwCVDkEf2ovCApyQD+iD0JNLC5TkShGSY64FLtQHZHdVGve55tF0ywCnCjSCSDF5m2MAl4JLByaN6UXik95JkQB/EfZKQZJQdCUIm4FbKUW2IkJW8EfV6t1WbCPTacluSDAfWcx7/8hvq9TlPfZNnIsiP/V4dr1B+/T5hPrjkqYtG7Bl5UJKB0OYEvlVH1OFlC7GfbtU5Kksy+JU+iKbCR5IRJO6JV2m+IgwJobUmIYw7vDoGA6LRsdolT1hJBiePtqaCSTI0456E2KaG7dh2jDtcA6LdsRokT2hJhkvOYGkqHISTZEDckxARPQzD9Zi6RBBSgtAd48Yd2loTNiDhO1a75AktyXDJGSxNBUdISQaPexImoof7HYciCPG6aoXtGDfu0NWasAHR6VjNkie0JMORM4Cmgu1jQkoynLgnwV0yXORRBCGe25LQWhNm3KGrNYEB0elYDa88ISUZQojANRU2wkoynLgnwSN6uMijCEK8V56wWhNm3KGrNYEB0elYTe95QkkyhJyBaSo4QkoyeNyTMBE9WCHu0CGV9jyhOmbh8oy21gQGRKdjNXy3FVKSweUMoKlwEE6SAXFPwkT0YNml0CG+d1shO8aNO3S1JjAgGh2r9ec8wSUZXM4AmgrpfiuEJAPinoS5JYFC3KFDKj/nCaE1AeMOXa0JDIhGx/AJ886jHo26kDxVwtU5nFskjxbuG+yBHGJ/kAclGQhtTuBbdUS97HkQ+/RWnSO4JAO+84WPJMMxodgxeAUuwYglVSWPriQDpBXh4S5zJ+EZuAQjllSTPPqSDOF2AQglyeBlBlYu8KKPfDPeJ8nAgnnq1ZBfBk+XDN+IJazVjp8GkqdSQm1JhuN2YSOsSwaUGVi5wIv+ejMyOU4ia70kYfhm9HTJ8ItYwlstQpwgeSol1JVkOG4XbB8T1iVDlBlQuQBFJ+H34U9vk/MVdIxeLhl+EUtEq7mfBpKn8sqjJ8kQbhcMYSUZTpkBlQtQdBcIQk58I8+v+ufwcsnwjVjCWy38NJA8AfY8OpIM4XYBCCnJ4GUGVi7womHlia735lorZilxyfCLWMJb7fhpIHkq3m1pSjJKpOihJBm8osDKBf5ee+5GZNJyphif/eifwTtwiV/EEmg1D3GC5An6nCe8JMPjdwxhJBlQUWDlAi869d2YsWo/SStsar0Dl/hELIFWixAnSJ7qJKxN+P1IZ/ApQSB59MgzgU+WkTyIvSIPSjIQ2pzAlQeBly0EkgeB5EEgeRBIHiQPAsmD2F/koQiEAvz7QSAQCAQCgUAgEIjdAN5/IrTv1nE4EEgexJ6RZyEG//iRtP7bG4+pX+hjtjNxxqD0v85Y3zdKjYuJ1hm6QBoaGqZEkoa4+TlYaayBBwfKyPuBDZ1vYaQhfvS7+Y+xjnhvWvly5WjD2YL4BNMhTl6KiZPvexOJX9N84uSp8iWP+nn75Ckemij++Tc1Gl4Ub6coHT6Vz2fK11d3CNFzNnQVCtu60U/pkyNLND2nfHnuZuHEPUFEmA5+Mt0XEyczy7T4sINPnNxAmTzZi01Nw2aKB8nW95T2w5LDcsx1N12LOQ0bTvy6Zh2n2xJP6LcjDSc2KGSnxlCy8fImfdIePzRG+YHhJynQL33moUjnmihNzpUlK28EXTri+iaautRm1vC4PW79pbAGipQHhzxyx2A8pZGAoatU2NcEpZ2wQLmzF+NL9PlRut6Wpist8zAdcJLSgTcxKuaI0s37v/CJ8yPP2Qv5wn/m2vSwOJpy+sIOqYfFiw55yP3ixSHzGPkzvzlPUw+KlwYpZKeXTmY3z95Yi6Tp2mcKBxd5PptLct+LrduDNENGk/2LZmGtzYOGSh6lEVDtK/KqndIXy8W/filJeYBWHqljbDzlkYChq1BYYbifrpPN0mVthWQvpJspfdO7eWKMTwc/+fyanZSdpIuN5Ncsnzh5qiTy5CIZNkWb9HtCIc8GydNZF3ly9EO7dczAdx/aKGTPRxYo/dSRjT23aoEDx6GJrUFzQ7NwKJLK0UUyVvzfKZr7TjMDgyXkgUbI4zEfm2cnvzX6pjwY5LE7BuMpp4Sh89/zNDb++p0uRr02i7GN1Hzc/MdQaoDy6YCThcNrrHr7pInVgdt84uSpksgD9VhZ4dLh9MT6bt4hj/WpgadYZJ8g+5LZ6MbGJvrmZLLPXDHhAHjf2Xa7hRa7XmyNnDOpvknT9spIPzeXXLY8tgALMet/lE52NyZivikPBHlYx/h4yhteZ+gqFLbGVx45e5F+tYY8TaapMx32yftsawMn7ck5xCdOnirPlceLPPbq4lp57LUGUigrT5QvNcWH7a4Dx78D/Hq6Fd+kXzXIsxGdpem6IY8zni64hq5SYe0eN2XW9uaFub3ZSg23Z6lrz2OePG9z4aez57E3GmzifMhDT1/MF16VkCcbsW70+h4WL7nIY366IlKY+6HL5ieWnV4YytGlN5nXm3Ssk8JBbHq2Mj2T1Iiz7f0fY/T6KTqzQtdODpYjz1JvCXkyZKFw6WCSZ9OE2jE2nvJIwNAFIc+j1E/7bkvKfm5k66R5Y3XrNL15QUwHnGRZ4eTzebpx6iKfOHmqlLutC01N13ij39sPXCwV4b1Ewyyd60oOu+62riWOrYoGzh2OD5j3Xiw7zQ+1NHQ9XjmWiPd/pnDgeNKUvGUeXnbEUl/NFh1t6Fukd5Px5FVDec6jMli6bN1KtI+KBh4k8tjTsKB0jI2n0kk2dIGWsQft8a60kt16pLNJP7Ws0c2eKT4d7CTPyk6OdTY0XcryiZOnSvMJc/0+ikH4P2FG8iCQPIhdJA8CgUAgEAgEAoFAIBAIBAKBQCAQCAQCgUAgEAgEAoFAIBCI+sbwT2O+zz9Jl8u+WcTIU4PlvT7uFHZ91PXFkzVjpl3EJoXDmaXN9BFRJjUM44d/G47Pby787vo8ZRiH/SP2uVGpBnc58O+uip7VdpzUuubO0LdO0pcKnr4cefrTrsLiq0nnm5HWyNgsIS8exN6P8EPcOBu5+5WU4aEHousXSacrUHZnsTFgzkA1eJCnCqUeeCyxiJpHvhnvkzw88S8Z88z4XfPjhZX8EEkb9iAdWdh4WDDP3VxfPUHID+vP7rJTzr/DTmGEPJPjC6dydtjy85/5od2Jx+6aBKiv4el6bjLODwwdNOpqJ6v9MDQi02N+ESs0/m/ZXs3kUuQaeDftM7wrqYXsI/MMZIeO8U5DBpbSizz8u6apbHasvriTpGx8v96MTI6bq/tIZOqpSYJfSXSjh/QUJxLxHj706VuRyYIdO/3W19I/u9UjTmGEXHkrfTn4gbTRpum+NX4g6XPRu+Ml5GH1PXvbFH/5kB8YYusTKaedUhx28tIKVt03T861R0a/qKXINUA3gTzQla83IlPmGcguFS3GBTrtRR747uV0InamvsjTuQUcSpDfVsyBaCS/LRMy+pic/GaNyyFnkJLWd9aIx8jhfAl5bN5AYSaOrbi/bMn8SroKyblegx9IT6b4tdHZkeRyuVu8vkSx2yzgJxx4mqMzW4v9vJ3yDI+MxbNdQxP2QpFTSpFr4N3k5LG7Yp9kxVnZpaLFuECnPcljf9dYbK27q1YLWyy6zGk357SHHcjhTGRixH054UkKfOBV8nQWncJMSCMd+2hexNqsC9UaP0QWz0XvvSi9bNlFWROdy8LBKaZxfI63U57h3z4MfBsaHySXFnL5TaUUZRMM3eSXLfsAHePZpaLlDGUuW/b/nT+cOsLPAWnlgT/s7yfW25VJ5SsPH8fu0pUHClNXnql/zP9Ym51zn/mho8yex/pvYqvBdXDvnPIlK4/diHh29NTzr4eTW8dJf0EpRa4BslsT3S+6AisPz847Jq08lclTjysPuTbXYd0gzd2ITE7Y1+9n1vr/1/ynkklNj9h7noIY1053OZmUU5i85xl9HbEOL+5H343wQ4N5t3Vnzps8ZPppI+n8nR8Y4sOJ6Ji5I2HtdLHBasTcfOTdeqSV9sQmC2opcg0se2yznzxwupK+HnlWIDw77xjLAuPivdy6yUNeTSVip60lb76O2HNz2fjRT1LfjZlmcxAe5z+12Dc3w2KoTtjPM5Iktbhxf9P1R3h/I3PBKWZi2ClMvtuim4axoT7nObtUmEuVIU/iyZrx4xo/wK36q+zm58ME2ulksRvx5D8yOmOyNL/8V0EtRa4Bsg+vfhx1yJP6sTFWENlZmaLTMC5QRGq15DkP/65pOpt9XM/376LjDcYhr+9/WS2b1X7Ow9Hgfs5zkDD4FJ8qVyTP9felX/Z1Rv6ZLp/31XHn39IT5oOEiQEkSSXyrPw8Uvrl6YwxewjHCIFAIBAIRE1vkbvCRlL/84exdNmSOph30PLt6Yn5fP5jf4V8N13PeAOU6Y/yjfdvC8O8UfAckopjJr0FK0FLNuk6hIaVj7esa0Mru083vcURykgEJk9YXJrvIR0XzOzRh2mllEPtJHLjp3++4hcP8viUqQvftngPQrXI8/dT9yE07Hz6g+BRbU9F8oSsj6cGBQLoCpicgYsNhpaNzDCRNQ5k8STPnsrzUgYsX9hXQ+Z/Yje/OKV3fHNVyPO96yolj1eZAF40NAJkF9Ayf/kEtIU4SXh2eRBkSYZckYPo2Q+KKoUdQM3i9Da22isOkppF6bTcJJZSZIdn+4EnBz4p1ULLZPK4+9CzNTe5MiaSfDgbDbfysH+AroDJGUBs0FzsI81HiaxxAPWFmSs2JlaJyFovSRjNpCtHPzY5hbobLfJdvl1CHs8yAbxoaASTXfCW+cknRFuIk0RoTaS+y5IMqSLnYnBrZfaCqkqBl+tMzSLafem9c5DULAp55CaxlCK7tLZVnhwxIHK1SsvsEqU+9NDT9PSySHJhduVWc2jywNs9kDOA2KCpcD5OVI2D9W7xXi5nSR0+OvuTp7fJ+Vl7kGfuEJLL5c2v5fp4vkLjXAl5vMsk7qJ5I5jsAlpWQT5ht4XTk71X5VoTdRAcSYZcEcdkZqyblKhSYPyZmkUg/Yc4yGoW9S/G3SRIKbK7awgwOWJA5GqhZTJ53H3oKfQWet06m+6xzGRY8oCuAOQMvJe/v9tIDygaB3uV6CkoV/0T38jzq/a/jma8L6FOvv/OF+wX2D2bxLdM4i6aNwK+ZC2rJJ9gbSFOErVs9lGSZCgVAebSl+Ok5DUp+zcXiwB+XYyIg6xmkRsoN4nLQ3h2dw1BJocPiFStImMRJTp9sAa9xyVHIfHL6TndlYfJGZxeRm4sqxIJS3FaMtHR9d4cUyYc3Siz/xL5zv9XIO1mvw5v+JdJ3EXzRogvrZZVkk8c3Sj5M5fLtkUYsiSjpCKGY8/XHvWqqpRutvKAWATwYtg5yGoWEIR4NkmsPJC9uxB2ctiASNXylnV7kadbkMfpUe+jteljgS5bMRNilEBXwOQMUEHrH3FyfVHROJDBb13kpDPRUMr47EdCzveS5NspZ+glkYLIF98omDuZk+TWe+JfJsAumjeCpeEt85ZP2HDaQpwkKiWazK2CKsmQKnKh9c6qqkqxD0LNwnrbnm10HSQ1CwhCeEq5SSwlz8daFnxy+Ce5Wt4yKMyuVu6DIA9LsnonmDapx/b17uEKBNAVMDkDVND2KW+kjyoaB0KuLuaXrvGJZqUQctKSclxfMrLPmsrd/4l8lm74xKLxpZv4lwmwi+aNYGmgZWXkEzaUtoAkQ6XESN44Lksy5IrkNbBElWIdhJoFvnlEXAdZzcIEITyl3CSWkudjLQs+OfyTUi20jHVTViHxxvMF304S7F4LUf2nrWzPsNHpOljwUbMoMFO68ulArrbufyBUa+TpGnIfKqlZXGApu4a21Ra5WiRPjZFHQXA1S1V1L6wwJA8CgUAgEBYM+z6Q+iozvBUBzKciBMIZW2wflRtYvi3baaVfXvYsfMNnq73hUYJniVDK3m5pyvyirRLApyJ0hl3rbIAG7hF5Qp8KWeKuk4e9oYeX/+LNvg3Pk+BT4WNswTOEN7Zwazi4Y4fkb8Hh44sRpIGgqYAGApjwgQ8Iq4F/AsGEXIqcBCw3xNi6a4fv5PGERkiOJJaK4pPzvFNWicizorqV7AV5pDf0zpt9F7k9T/oZW/AM4Y0tpD8mcOyQ/C04fHwxAjRQlnJwMOEDHxBWA/8Eggm5FDkJWG7wCqTa+XfyeErtdOk7xtU3sJ6N3w8rj/SG3nmz72qm50k/YwvIoGtswcEcO8q+9SyfvWID5ReqAHj96BJ2mDUIPw37TWNpO91JhOVGSe3iO3k83e106ztWFPJ492+f7HlcHOdv9qVmep70M7ZgGXSNLTiYY4e33sI3e+UGSlIOvlPakgaF1SD7aSileCWR2wAZxHfyeMqKObe+Q54V7/7tP/LwN/vKnszjpL+xhZVB19hCwHbskP0tAP7ZAzSwu/zKAw4arAbhp8FWHqkU2RAzkwAAEzZJREFUNYm88rhrl1ceMZ7dHuSxUi47vZVUIsqsdO8z8gipg7uZnif9jC14hvDGFrLRBHPskPwteA0+vhgBGijaAg1kYMIHrnhgNQg/DSaYkLupJLEtN5QJhgz8O3k8WSMU8tyIPHvq9FZSiShlgy5kj8w5XOSBl//8zT6D50llbryMLXiG8MYW8krMHDskfwuxHyrvixGggbwtvIGwVbOFD3xQWA3CT4MJJuRSlCTMckOeYMjAvisZT7sRkiMJ16yL3rpVItKs8O/wDZY3yjh27BGCSysQ+wBejh17hODSCsS+gKdjxx4BjUIQCAQCgahZKJIMP3goM8DtgiSmcuv3+Mms5VTZSJvJKXqNxQz52MMPhJ9k+aD2J+b5zyNezxA8HywEuy8tnz0QZMVD+ffc3iUG95tgQ2D496SnoNGDAPMnF72N5zxaeZnbBXnyPN48Nwgnv1iOsodzhPzz7Z1ddHTsMz/wk5CP1dye7ySnf8b2F3nkDGHJE6aiALYcVSFPxaK1ycMEBbI3hKcGQFJmgNsFyR0m5NIsnJy61klPnkoT8vPMZgN7cpbjB3GS5YOxuPeMfLugtstTMMEtKaTmAtin5EofaVvtlXUMnuFW+KM4qdPcMEJWPMiiCEl2AfIJLh2R55jJNbgAxWcCILvSJHmG2cgLeYg9LkrRYKThGYaGqz0kdUlVyAOCAtkbwksDICszwO3ikBWTpo8/Pvv7/rmVkaFp0mtEv5+xl5x77/hBnLTz8UIbV0e/lPuLlAUTcrAQuYHw6ff5+HvHRVrylFB/7M/sI6ROK4YR8kGRVjiljAvpiNx4JtfgAhS/lYdlV5okAUZeaD/scVGKBiMNzzA08tAJO47trlxCgSB7Q3hqAGRlBrhddFnfiDfTF5+P/v189A4ZeUceWV3IFdNN/MBPsnzOXyg9VmZQk8pvwN3BQuQGik9P52ZEStlTQiWPbR8hd1o1jHAfVGmFU8qKCPZScnU5knMLUMqSh2VXmiQBRt6t/VhRioa3ut5haKShc+w4qkAe+A2+5A3hrQGQlBngdiGvPP2f3nZ8nbxEPvxFzmasJM3zF/jBOWnlI14WPnJ9XYr7hBQsRGqg+NRPL4iUiqeETB5WtNxp1TBC8qlQpBXuUniwF3mwmFyDC1D8yMOyK02SwUberf0wlKJBT+IdhkYaOkU6Ug3yyN4QZTQAbmUGuF2QXK9rz9O08o3Mpn9p2ioUCjRl5Tr7ncDBOWnn8yVPt9fK0+0aAbmB/FP066PlJiLrGDzDrYB9hNxp8bNtWfHgLkxdeRLM/oYFe5Ebz+QaIEDx3zDb2ZUmqbBG3q39WFGKVlceKQyNRJ4dWHkUbwgvDYCszAC3CzI+HU+mxW9k196QMZo8b43oR3trE82cgINz0s6nkEeN4VUqmOCuDlJzAfBp9BV5ME1kHYNnuBVuHyF1WiWP2wlDlVY4pVjGW0w6Ii4ybucNJkApp5tgNdnZlSZJgJHnXYFx4UUzgJGGZxga2eEA1CXVJI/sDeGlAZCVGdztonE6t3FflPj5LrmYJZNWGI/rabusv9/CwXVyqpQ8KfmVtYdggrs6SM3lS4/96dhqC4nNXySSjsEz3Aq3j5A6DeRRFQ+SKEKSXThmhFSKjel23gABSpnbbHButLIrTZIAIy+0H2xceNFAWWak4RWGRqg9JHXJAcLuxgWpsgRmm9IRO3tVm7SNMDS1iN2NC1Jl8mxTOmJn3xnyaIShQewqebYpHWHZd4Q8GIYGgUAgEIgKO4EdeZsrlaO+l/M1tvCMnWCDiQ1Cht1AHCzy+BtblCfPztw+ISrB3+MhoBTA2/QCDnINTNzAZQIyecDYwjO6CLQMtAogkYD6QD4B5JHdPBA7CD+PB4YAUgBv0ws4yDXADCsCBmnp8IwuAi2TjTTkWCPebh6IHUVZjweGAFIAT9MLV9APpwY+0YqAwU0ez+gi0DKhVfCINVLGzQOxc/DzeABUlgJ4ml7wg1QDP6sIGNzk8YwuohpUeMQaKePmgdgx+Ho8CFSSAniaXvBYHFINQuMgCxg8Vx53Q/jKw7UKcqwRxTBCcvNA7Bh8PR4gSQApgKfpBUQXkWvgGgdZwCDteTyji0DLuFbBLkXEGoGkTAbBNSN75BtRT/DzeGAIIgXwNL2Ag1wD1zgoAgY3eTyji0DLhFbBLoUV7cgnLBmE0IzgjfuBxf7yvkDUFPaR9wWixrCfvC8QCAQCgUDUAYIELvnzh7F0uYfml/7HTC++HN5OjUx24R0MxfPW3e97iCgNhdkPfc4s2W9L41P51ZIHzZ6qjeD39Dy7T+O3++PvGkNFl4xL8z2kw/q5S+f8eTvlSHob1YUJeBKUPIC+tPkpbpyN3P1KyNjbROJQoBKraWhRn+TxCVyyeJInu/zecbuwoWgx5HyKZYNLknGYV8S8GpxfjnmE+QB41gAzxSUZM6csvxYaIaksIRspdyd5Prd5BW+g5cHw6rF/LBWJPJLfBH9tA+Yc9Ugen8AlSRrnyfrtWLmRu/yHxYoWQ1FDKJYNsk8FTMMtV8DxMmE+GDxrkOf0/GNGpXPRu+Oklf61nha/DlWihICUAxrYU4i8mKgQS0Veedx+E7zx3JyjvlApcIn16/l7uZz1jfXreZrbWhOh0GUthpxP/eG07FMB77nsX0wL8niG+RAoqUGe09j3FjapmeLXRtJFhyOP34hFUI4SwgqDBprnJmcjwWKpyOSxeySu+mDOUYfk8QlcYq88bDVmK0/swWv+naLFkPIplg2KT4WjvijILfD2ovCsQZ7Tkb/tY2TxXPTeC9Jmtro/y+4IiBolhBUGDTRZ8DbbWSGWChi/SeRhLRYNB3OOuiePrGpYGuDk4XseYf6haDGkfMrK40UeWHl4gA7vMB+MwV41yOR5Ti10dLA9T3Qz5monkaKEQGHOyhP5+2MkUCyV7lLy8MZzc456J48So2TwWxc5WXDdbf31XXwnaTGUfLJlgxd5wKuBB+jwDvNhw7sG9SbIOjaYd1t35gh5PWzecInsPJ9kXgENtDbMczf8Y6nwy5+VXSYPbzw35+Dr7rzH4UCTp0yMkquL+aVrruc86V/EV5IWQ8mnWDa4ycNVFODVAAE6vMJ8cHjWwOBIMuwCzi4V5sw7rY7PRrqLJ3Hyuc0roIFWriO5Ht9YKmKTZ2ZX/CZY4x1zjtLdEcpDdgoYCQShB/RqQGgDvRoQCAQCgUDsGl4fV+7cHT+y0dJnKd4IpLBAHDj0ywILN3niq8mA5EHUJ/613gVDHAsmg4BYHCaeueUP/KT9CeJ7SD4VXHaBqBusWr9jgDgWTAbBY3EQcuWtQx5xkn1i8T0knwohu0DUCeyX5vCGEl5G8lgchBxbcZGn0eXjL+J7uH0qhOwCUSfoLBKhjeASCREsxEWFHimCCI/vIflUbCfsG+LArDwQi0NeefhJQZ6C4lOB5Kk7ZCyxL8SxYDIIEYtD3vPwky7yyD4VSJ66w4R1RwXaCCaDELE41Lutj80KeWSfCiRP3YE/5/HQRjS4nvMgEB54dbycNsL9hBmBKAPURiAQCAQCgTjI8DW98L7tltUXsuHtq/VKRgJtn42XMfEJHC3ESZfNxYn5fP5jPyHHF/P/xe12GhdLy3ZbbnhZYChdgCTBQ5wE8MXwtOOoD/L4mV4EeWYjk2foTCXyvHgQey/cu7mjBT/ptrk41E4iN36SSObPyMTf5ZoiW270VCRP+J/CVE7pbcdRL+SxTC9kUwjhFGHZR/CngxBPRFZfQAQRz7GGUqQkEaOTnP/MPSXA0QJOKjYXhMRufjE/xcgvaafcDnfQAdlyAxJJxha8nfykRB7oEQA8MzzJI3dats6Q7TjqjDy26YVsCsGdImz7CFuL8VTEE1HUF8pfpvujElaEXbVo03TfmvCUYI4W/KRkc0G6cvRjk02eo+tmfZm18YaS+rx+WicZW/B2ygFP5AgpAPDMIOWXKrUwG7IdR53teZjpRYkphO0UYdtH2FqMZeHqr6gvfMhD5LAibO9QSM7Z7+aZpwQ4WrCTss2FiZaZO4RkrkTHDdJ4mByaGfedWjjIxhbQTjXgiRSngIH/ct2XPHJhrEeSHUe9rTy26YVsCsGdImz7CNBi8HgiyjtQH/IoYUVg5TGvSeYiwzwlhKOFfVK2ubBwNEPIicWVu+zFydG1IOQRxhbiVE9JwBM5Qgpsn7ZIRfIohUGPwI6jTvc8WdWgQjhFWPYRPewPVFl5lDgkHuQRcg13Emt7c+4z95TocPY85knZ5sKmC7vHuTwTjDx2RbKxBbRTDnjCzTKCrDwevhhyDSV2HPVFHsv0QjKFcDlFROdu2FqMCRFPRCEPxCEBxI4UYjGxGQC5hpTkxf3ouxHuKcEdLeCkZHNxvpck306ZO+ToofnLZKCNtLyzLluy34RMHuZhIRlb8Hbyk2BzwQ68R6xM8MxQ1lIPXwzFOoPbcdRfoBRueiGbQricIo7kzhQe5z+1cLeLEvUFi0MCsNcO/gFKkZOwRzrcUwIcLcRzHpfNxfUlI/usiZCh7MYoIbfXjfV/4t4bZjlwiWxswdspTtpJ4AARUqBM8MwgKVld4OGLIVtncDsOFKNoPu05SBh8inOO5NHEBIYJRPIgEAgEAoFASAjmkoFAlCKgSwYCUYqALhlctYFAOAjoksFVGwiEQFCXDFBtIBAOgrpk4MNCRLCVx8MlA8mDKEVAlwwkD6IUAV0ykDyIUqBLBkIf6JKB2BbQJQOBQCAQCMSBxvH5zYXfy92I91S0iKgKWrLJSs8BfJLw1pUmCe2JgQiF6PpF0nmsAnl2Gn8/rViTXhIMD7uj6KBR+whWFsIew1ZfwEnZIgLEG3x22ONEyAC2E5AETrIyeaQT2ebCRmy11yndLoEnFnYULAkTisBJ/p0B64q7lACeGIjtI7Y+kXINMLfHAPWFl0UEiDeAPOCgARnAdgKSwElWJo904rEMXHrvlM5K4ImFHQVLwoQicFJ8BwW6SwngiYGoAo7ObC32u+fUtscA9YWHRQS8QhXksR00IEOS/6qdJXE0HGaZrkgnKtJ/uEq3S4DEjh0FS2ILReCk8x000lVKAE8MRHXQOD4npoDbYxRK9wzwW1tQbXDygHiDJexy+Wk4ZvCsTB7ppBS/Lkbk0g2eWNhRsCTsOzjpWFWwatylBPDEQFQJKWtBYL4Rwh6DfeNhEaGuPOzPmWVQVx52kpXJ4w2U4sWwu3RYeezEwo6CJWFCETjpWFWwUt2lBPDEQFQB8eFEdOwLASsLlz0GIUT4W0gWESDe4ORhDhqQAWwnIAk7CWUK8qhmEu3ZRlfprASeGOwoIAkIReCksKqwS5VL8fXEQFTtVv1VdvOz7YZqW1m47DEIP6lYRIB4g//VMwcNyAC2E5AETrIyBXnU5ef+I+KadlYCTwx2FDwJu7ODk8Kqwi5QLsXXEwOxp3DEG2WfoHjoO8osfRud20xibWQClILYB5DEG97k8dZ3eKNraLtJrs4FKgWxDyCJN7zJs5v6jvsGxlNGIBAIBAKBQCAQCAQCgUAgEAgEAoFAIBAIBAKBQCAQCAQCgdh9WDFGvxwu96WnyFT2zJDSJF+tV/QUKGO5YUdP8bSxc9egbYMRn8qvYgS/apPHHPaRdCjy+KRJDp3RNKRgrpqegVJ8yBPcBmPsbSKBtnk7QJ5UTjhagL2EMMsg0VeP+e+lwGVC9swAIw0fvnHHCyhTzi7wL/PsdVv3QgaphhA2GE1T2azjyrGRwrneCfJE7s4KRwuwl+BmGYXIiwnhhMFdJiTPDJUtHuQBxwsoU8nOYUdPkU3DpQyisMA2GC+nE7Ez/LtW+td6Gn/aVfU9T25rrZs7WjjWE8wsozA5G+FOGOK33m7PjCDkcewxrDKV7Px6Z8UwIHK4AimDaG5QG4zGYqt7o0WHI4/f4HRXfeWJPXjNZ4HbS3CzDPo228ndKYTLhPTL9SDkYfYYUKaSHWBHTyFyoBQpg6v4YDYYnVvuRrSZ5OzP4nTvwJ5HzALYSzhmGZG/P0Z6uPeFtPLw2e8ORJ6CKNObPB4rj8jQXUqeADYY8soT3YzZ3URUmzx/fRczyewlXGYZ0bkb3AmDu0zIsw9GGoDYkUIspi4WNnl4md7kYdFTpD2PyOCuIZANBvPheDWViJ0Wn14PmzdcON3Vf86T/kXMJNhLuMwyjuTOgBMGc5lQPDPAXYODWjCTrpaQB8osyQ6YKL3bgkZINQSywWAFN01ns4/Fp47PRroLp3tPFqeQGHyq95wHA6UgechE+Ie5VvQUDJSC5EEgFLxlwIFAIHkQSB7E3sJWQ7i3OGKX497AInkQ5e6SPcnjlkggeRClsNUQEGsktZB9VBAhQqSHdkgeRClsNQTEGvl6IzJVECFCpNcFSB5ECex3kuD4b79bLPAQIUR6UYnkQZTAVkNArBE49Ahxg0sigeRBBFt57BAhuPIgKsFWQ0CskfT1yLOCCBGCex5EBdhqCIg1kvqxMVYQIULwbgtRAfw5j0eskQZ8zoPwh6WG8I41gk+YEQFQOdYIkgeBQCAQCAQCgUAgEIidxP8BMX6OcVR4F9IAAAAASUVORK5CYII=" border=0></center>
+<p>Assembly code comes in two flavors on Intel machines: Intel and
+AT&amp;T. You can set which one appears in the disassembly window with
+<b class=userinput>set disassembly-flavor</b>. Valid values are
+"intel" and "att". If you already have the assembly window open, you'll
+have to close it and reopen it (<b class=userinput>layout src</b>
+followed by <b class=userinput>layout split</b>, for example.)</p>
+<p>To display registers in dumb terminal mode, type <b class=userinput>info registers</b> for the integer registers, or <b class=userinput>info all-registers</b> for everything.</p>
+<a name=frontend></a>
+<h3>Writing a Front-End</h3>
+<p>You're thinking, "Wow, this is pretty cool, but I could write a
+killer front-end for this thing that worked so much better! How do I do
+it?"</p>
+<p>GDB supports what it calls the "machine interface interpreter", or
+GDB/MI. The interpreter is selected on the <b class=command>gdb</b>
+command line with the <b class=option>--interpreter</b> switch.</p>
+<p>Basically you'll launch <b class=command>gdb</b> and read commands
+and results to and from it (probably using pipes). Pretty
+straightforward.</p>
+<p>See the <a target=_blank href=http://sourceware.org/gdb/current/onlinedocs/gdb_26.html#SEC263>GDB
+documentation for all the details</a>.</p>
+<a name=qref></a>
+<h2 class=pbb>Quick Reference</h2>
+<p>Command parameters are in italics. Optional parameters are in square
+brackets. All commands can be abbreviated until they become ambiguous.</p>
+<p><i>This list is very very incomplete, and only shows things talked
+about in this tutorial!</i></p>
+<center><table border=0 class=singleborder>
+<tbody><tr><td align=left colspan=2><b class=tableheader>Help Commands</b></tr>
+<tr><td class=rightpad align=left><b class=userinput>help
+<i>command</i></b><td align=left>Get help on a certain command</tr>
+<tr><td class=rightpad align=left><b class=userinput>apropos
+<i>keyword</i></b><td align=left>Search help for a particular
+keyword</tr>
+<tr><td class=tablespacer align=left colspan=2><b class=tableheader>Starting and Quitting</b></tr>
+<tr><td class=rightpad align=left><b class=command>gdb <i>[-tui]
+[-c core] [exename]</i></b><td align=left><b>(Unix Command)</b>
+Start <b class=command>gdb</b> on an executable or standalone; specify
+"-tui" to start the TUI GUI; specify "-c" with a corefile name to see
+where a crash occurred</tr>
+<tr><td class=rightpad align=left><b class=userinput>run <i>[arg1] [arg2]
+[...]</i></b><td align=left>Run the currently loaded program with
+the given command line arguments</tr>
+<tr><td class=rightpad align=left><b class=userinput>quit</b><td align=left>Exit the debugger</tr>
+<tr><td class=rightpad align=left><b class=userinput>file
+<i>exename</i></b><td align=left>Load an executable file by
+name</tr>
+<tr><td class=tablespacer align=left colspan=2><b class=tableheader>Breakpoints and Watchpoints</b></tr>
+<tr><td class=rightpad align=left><b class=userinput>break
+<i>location</i></b><td align=left>Set a breakpoint at a location,
+line number, or file (e.g. "main", "5", or "hello.c:23")</tr>
+<tr><td class=rightpad align=left><b class=userinput>watch
+<i>expression</i></b><td align=left>Break when a variable is
+written to</tr>
+<tr><td class=rightpad align=left><b class=userinput>rwatch
+<i>expression</i></b><td align=left>Break when a variable is
+read from</tr>
+<tr><td class=rightpad align=left><b class=userinput>awatch
+<i>expression</i></b><td align=left>Break when a variable is
+written to or read from</tr>
+<tr><td class=rightpad align=left><b class=userinput>info break</b><td align=left>Display breakpoint and watchpoint information and numbers</tr>
+<tr><td class=rightpad align=left><b class=userinput>info watch</b><td align=left>Same as <b class=userinput>info break</b></tr>
+<tr><td class=rightpad align=left><b class=userinput>clear
+<i>location</i></b><td align=left>Clear a breakpoint from a
+location</tr>
+<tr><td class=rightpad align=left><b class=userinput>delete <i>num</i></b><td align=left>Delete a breakpoint or watchpoint by number</tr>
+<tr><td class=tablespacer align=left colspan=2><b class=tableheader>Stepping and Running</b></tr>
+<tr><td class=rightpad align=left><b class=userinput>next</b><td align=left>Run to the next line of this function</tr>
+<tr><td class=rightpad align=left><b class=userinput>step</b><td align=left>Step into the function on this line, if possible</tr>
+<tr><td class=rightpad align=left><b class=userinput>stepi</b><td align=left>Step a single assembly instruction</tr>
+<tr><td class=rightpad align=left><b class=userinput>continue</b><td align=left>Keep running from here</tr>
+<tr><td class=rightpad align=left><b class=userinput>CTRL-C</b><td align=left>Stop running, wherever you are</tr>
+<tr><td class=rightpad align=left><b class=userinput>finish</b><td align=left>Run until the end of the current function</tr>
+<tr><td class=rightpad align=left><b class=userinput>advance
+<i>location</i></b><td align=left>Advance to a location,
+line number, or file (e.g. "somefunction", "5", or "hello.c:23")</tr>
+<tr><td class=rightpad align=left><b class=userinput>jump <i>location</i></b><td align=left>Just like <b class=userinput>continue</b>, except jump to
+a particular location first.</tr>
+<tr><td class=tablespacer align=left colspan=2><b class=tableheader>Examining and Modifying Variables</b></tr>
+<tr><td class=rightpad align=left><b class=userinput>display
+<i>expression</i></b><td align=left>Display the value of a
+variable or expression every step of the program—the expression
+must make sense in the current scope</tr>
+<tr><td class=rightpad align=left><b class=userinput>info display</b><td align=left>Show a list of expressions currently being displayed and
+their numbers</tr>
+<tr><td class=rightpad align=left><b class=userinput>undisplay
+<i>num</i></b><td align=left>Stop showing an expression
+identified by its number (see <b class=userinput>info display</b>)</tr>
+<tr><td class=rightpad align=left><b class=userinput>print
+<i>expression</i></b><td align=left>Print the value of a variable
+or expression</tr>
+<tr><td class=rightpad align=left><b class=userinput>printf&nbsp;<i>formatstr</i>&nbsp;<i>expressionlist</i></b><td align=left>Do some
+formatted output with <tt class=function>printf()</tt> e.g. <tt class=code>printf&nbsp;"i&nbsp;=&nbsp;%d,&nbsp;p&nbsp;=&nbsp;%s\n",&nbsp;i,&nbsp;p</tt></tr>
+<tr><td class=rightpad align=left><b class=userinput>set variable
+<i>expression</i></b><td align=left>Set a variable to value, e.g.
+<tt class=code>set&nbsp;variable&nbsp;x=20</tt></tr>
+<tr><td class=rightpad align=left><b class=userinput>set
+(<i>expression</i>)</b><td align=left>Works like <b class=userinput>set variable</b></tr>
+<tr><td class=tablespacer align=left colspan=2><b class=tableheader>Window Commands</b></tr>
+<tr><td class=rightpad align=left><b class=userinput>info win</b><td align=left>Shows current window info</tr>
+<tr><td class=rightpad align=left><b class=userinput>focus
+<i>winname</i></b><td align=left>Set focus to a particular window
+bby name ("SRC", "CMD", "ASM", or "REG") or by position ("next" or
+"prev")</tr>
+<tr><td class=rightpad align=left><b class=userinput>fs</b><td align=left>Alias for <b class=userinput>focus</b></tr>
+<tr><td class=rightpad align=left><b class=userinput>layout <i>type</i></b><td align=left>Set the window layout ("src", "asm", "split", or "reg")</tr>
+<tr><td class=rightpad align=left><b class=userinput>tui reg <i>type</i></b><td align=left>Set the register window layout ("general", "float",
+"system", or "next")</tr>
+<tr><td class=rightpad align=left><b class=userinput>winheight <i>val</i></b><td align=left>Set the window height (either an absolute value, or a
+relative value prefaced with "+" or "-")</tr>
+<tr><td class=rightpad align=left><b class=userinput>wh</b><td align=left>Alias for <b class=userinput>winheight</b></tr>
+<tr><td class=rightpad align=left><b class=userinput>set&nbsp;disassembly-flavor&nbsp;<i>flavor</i></b><td align=left>Set the look-and-feel of the disassembly. On Intel
+machines, valid flavors are <b class=userinput>intel</b> and <b class=userinput>att</b></tr>
+<tr><td class=tablespacer align=left colspan=2><b class=tableheader>Misc Commands</b></tr>
+<tr><td class=rightpad align=left><b class=userinput>RETURN</b><td align=left>Hit RETURN to repeat the last command</tr>
+<tr><td class=rightpad align=left><b class=userinput>backtrace</b><td align=left>Show the current stack</tr>
+<tr><td class=rightpad align=left><b class=userinput>bt</b><td align=left>Alias for <b class=userinput>backtrace</b></tr>
+<tr><td class=rightpad align=left><b class=userinput>attach <i>pid</i></b><td align=left>Attach to an already-running process by its PID</tr>
+<tr><td class=rightpad align=left><b class=userinput>info registers</b><td align=left>Dump integer registers to screen</tr>
+<tr><td class=rightpad align=left><b class=userinput>info all-registers</b><td align=left>Dump all registers to screen</tr>
+</table></center>
+<hr>
+<p class=smalltext>Copyright 2009 Brian "Beej Jorgensen" Hall 
+&lt;<a href=mailto:beej@beej.us>beej@beej.us</a>&gt;</p>
