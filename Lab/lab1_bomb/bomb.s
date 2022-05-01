@@ -28,7 +28,8 @@ bomb      檔案格式 elf64-x86-64
   400afb:	e9 d0 ff ff ff       	jmpq   400ad0 <.plt>
 
 0000000000400b00 <strcpy@plt>:
-  400b00:	ff 25 0a 25 20 00    	jmpq   *0x20250a(%rip)        # 603010 <strcpy@GLIBC_2.2.5>
+  400b00:	ff 25 0a 25 20 00    	jmpq   *0x20250a(%rip
+  400eb4:	bf 1a 23 40 00       	mov    $0x40231a,%edi)        # 603010 <strcpy@GLIBC_2.2.5>
   400b06:	68 02 00 00 00       	pushq  $0x2
   400b0b:	e9 c0 ff ff ff       	jmpq   400ad0 <.plt>
 
@@ -87,7 +88,12 @@ bomb      檔案格式 elf64-x86-64
   400bb6:	68 0d 00 00 00       	pushq  $0xd
   400bbb:	e9 10 ff ff ff       	jmpq   400ad0 <.plt>
 
-0000000000400bc0 <__memcpy_chk@plt>:
+0000000000400bc0 <__memcpy_chk@plt>:hase is harder.  No one will ever figure out
+     * how to defuse this... */
+    input = read_line();
+    phase_2(input);
+    phase_defused();
+    printf("That's number 2.  
   400bc0:	ff 25 aa 24 20 00    	jmpq   *0x2024aa(%rip)        # 603070 <__memcpy_chk@GLIBC_2.3.4>
   400bc6:	68 0e 00 00 00       	pushq  $0xe
   400bcb:	e9 00 ff ff ff       	jmpq   400ad0 <.plt>
@@ -803,14 +809,14 @@ bomb      檔案格式 elf64-x86-64
 
 000000000040145c <read_six_numbers>:
   40145c:	48 83 ec 18          	sub    $0x18,%rsp
-  401460:	48 89 f2             	mov    %rsi,%rdx
-  401463:	48 8d 4e 04          	lea    0x4(%rsi),%rcx
+  401460:	48 89 f2             	mov    %rsi,%rdx//
+  401463:	48 8d 4e 04          	lea    0x4(%rsi),%rcx//
   401467:	48 8d 46 14          	lea    0x14(%rsi),%rax
   40146b:	48 89 44 24 08       	mov    %rax,0x8(%rsp)
   401470:	48 8d 46 10          	lea    0x10(%rsi),%rax
   401474:	48 89 04 24          	mov    %rax,(%rsp)
-  401478:	4c 8d 4e 0c          	lea    0xc(%rsi),%r9
-  40147c:	4c 8d 46 08          	lea    0x8(%rsi),%r8
+  401478:	4c 8d 4e 0c          	lea    0xc(%rsi),%r9//
+  40147c:	4c 8d 46 08          	lea    0x8(%rsi),%r8//
   401480:	be c3 25 40 00       	mov    $0x4025c3,%esi
   401485:	b8 00 00 00 00       	mov    $0x0,%eax
   40148a:	e8 61 f7 ff ff       	callq  400bf0 <__isoc99_sscanf@plt>
