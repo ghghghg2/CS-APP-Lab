@@ -281,9 +281,9 @@ Note. sscanf is in C standard library. Ref to [sscanf](https://www.ibm.com/docs/
 
 Let's find out what the arg2 is:
 
-(1) Debug mode: `gdb bomb`
-(2) set the breakpoint: `b 82`
-(3) Show: x/s 0x4025c3 <br />
+(1) Debug mode: `gdb bomb`<br/>
+(2) set the breakpoint: `b 82`<br/>
+(3) Show: `x/s 0x4025c3` <br />
    Result: `0x4025c3:	"%d %d %d %d %d %d"`
 
 According to the sscanf, `%d %d %d %d %d %d` is a string format.<br/>
