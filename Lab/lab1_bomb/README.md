@@ -2,7 +2,21 @@
 
 > **Covered Concept:&emsp;Debug Tool, Machine Code, Assembly**
 
-[TOC]
+<!-- TOC start -->
+- [**Problem Description**](#problem-description)
+- [**My Solution**](#my-solution)
+  * [Phase 1](#phase-1)
+  * [Step 1. Disassemble the bomb](#step-1-disassemble-the-bomb)
+  * [Step 2. Find clues in ***bomb.s***](#step-2-find-clues-in-bombs)
+  * [Step 3. Get the content of answer at runtime  ](#step-3-get-the-content-of-answer-at-runtime)
+  * [Phase 2](#phase-2)
+  * [Step 1. main](#step-1-main)
+  * [Step 2. phase_2](#step-2-phase_2)
+  * [Step 3. read_six_numbers    ](#step-3-read_six_numbers)
+  * [Step 4. Find the answer](#step-4-find-the-answer)
+- [Appendix](#appendix)
+  * [x86-64 registers convention](#x86-64-registers-convention)
+<!-- TOC end -->
 
 
 ## **Problem Description**
