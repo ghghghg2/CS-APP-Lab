@@ -1,15 +1,16 @@
 Argument order: %rdi, %rsi, %rdx, %rcx, %r8, %r9, stack
 
-### Phase 4
+### Phase 5
 ### Step 1. main
 ```
 ...
-  400e7c:	bf 0b 23 40 00       	mov    $0x40230b,%edi
-  400e81:	e8 8a fc ff ff       	callq  400b10 <puts@plt>
-  400e86:	e8 13 06 00 00       	callq  40149e <read_line>
-  400e8b:	48 89 c7             	mov    %rax,%rdi
-  400e8e:	e8 79 01 00 00       	callq  40100c <phase_4>
   400e93:	e8 2c 07 00 00       	callq  4015c4 <phase_defused>
+  400e98:	bf d8 23 40 00       	mov    $0x4023d8,%edi
+  400e9d:	e8 6e fc ff ff       	callq  400b10 <puts@plt>
+  400ea2:	e8 f7 05 00 00       	callq  40149e <read_line>
+  400ea7:	48 89 c7             	mov    %rax,%rdi
+  400eaa:	e8 b3 01 00 00       	callq  401062 <phase_5>
+  400eaf:	e8 10 07 00 00       	callq  4015c4 <phase_defused>
 ...
 ```
 

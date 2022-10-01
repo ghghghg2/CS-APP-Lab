@@ -3,29 +3,34 @@
 > **Covered Concept:&emsp;Debug Tool, Machine Code, Assembly**
 
 <!-- TOC start -->
-- [**Problem Description**](#problem-description)
-- [**My Solution**](#my-solution)
-  * [Phase 1](#phase-1)
-  * [Step 1. Disassemble the bomb](#step-1-disassemble-the-bomb)
-  * [Step 2. Find clues in ***bomb.s***](#step-2-find-clues-in-bombs)
-  * [Step 3. Get the content of answer at runtime  ](#step-3-get-the-content-of-answer-at-runtime)
-  * [Phase 2](#phase-2)
-  * [Step 1. main](#step-1-main)
-  * [Step 2. phase_2](#step-2-phase_2)
-  * [Step 3. read_six_numbers    ](#step-3-read_six_numbers)
-  * [Step 4. Find the answer](#step-4-find-the-answer)
-  * [Phase 3](#phase-3)
-  * [Step 1. main](#step-1-main-1)
-  * [Step 2. phase_3](#step-2-phase_3)
-  * [Step 3.  Analyze phase_3 after sscanf](#step-3-analyze-phase_3-after-sscanf)
-  * [Phase 4](#phase-4)
-  * [Step 1. main](#step-1-main-2)
-  * [Step 2. phase_4](#step-2-phase_4)
-  * [Step 3.  Analyze phase_4 after sscanf](#step-3-analyze-phase_4-after-sscanf)
-  * [Step 4. Figure out func4](#step-4-figure-out-func4)
-- [Appendix](#appendix)
-  * [x86-64 registers convention](#x86-64-registers-convention)
-- [Reference](#reference)
+- [**LAB1 - Bomb**](#--lab1---bomb--)
+  * [**Problem Description**](#--problem-description--)
+  * [**My Solution**](#--my-solution--)
+    + [Phase 1](#phase-1)
+    + [Step 1. Disassemble the bomb](#step-1-disassemble-the-bomb)
+    + [Step 2. Find clues in ***bomb.s***](#step-2-find-clues-in----bombs---)
+    + [Step 3. Get the content of answer at runtime](#step-3-get-the-content-of-answer-at-runtime)
+    + [Phase 2](#phase-2)
+    + [Step 1. main](#step-1-main)
+    + [Step 2. phase_2](#step-2-phase-2)
+    + [Step 3. read_six_numbers](#step-3-read-six-numbers)
+    + [Step 4. Find the answer](#step-4-find-the-answer)
+    + [Phase 3](#phase-3)
+    + [Step 1. main](#step-1-main-1)
+    + [Step 2. phase_3](#step-2-phase-3)
+    + [Step 3.  Analyze phase_3 after sscanf](#step-3--analyze-phase-3-after-sscanf)
+    + [Phase 4](#phase-4)
+    + [Step 1. main](#step-1-main-2)
+    + [Step 2. phase_4](#step-2-phase-4)
+    + [Step 3.  Analyze phase_4 after sscanf](#step-3--analyze-phase-4-after-sscanf)
+    + [Step 4. Figure out func4](#step-4-figure-out-func4)
+    + [Phase 5](#phase-5)
+    + [Step 1: main](#step-1--main)
+    + [Step 2: phase_5](#step-2--phase-5)
+    + [Step 3: Get the answer through gdb](#step-3--get-the-answer-through-gdb)
+  * [Appendix](#appendix)
+    + [x86-64 registers convention](#x86-64-registers-convention)
+  * [Reference](#reference)
 <!-- TOC end -->
 
 
@@ -139,7 +144,7 @@ We can observe somthing from the code.
     000000000040131b <string_length>:
         40131b:	80 3f 00             	cmpb   $0x0,(%rdi)      
         40131e:	74 12                	je     401332 <string_length+0x17>  # jump if (%rdi) == '\0'
-        401320:	48 89 fa             	mphase_1(input);ov    %rdi,%rdx    # int i = &str[0]; 
+        401320:	48 89 fa             	mov    %rdi,%rdx    # int i = &str[0]; 
         401323:	48 83 c2 01          	add    $0x1,%rdx    # i++;
         401327:	89 d0                	mov    %edx,%eax    # res = i;
         401329:	29 f8                	sub    %edi,%eax    # res = res - &str[0];
@@ -747,8 +752,99 @@ By Step.3 we know that the result of `func4(num1, 0, 0xe)` should be 0. <br/>
 
 &rArr; answer = ***"7 0"*** or ***"0 0"***
     
+
+### Phase 5
+### Step 1: main
+
+```
+  400e98:	bf d8 23 40 00       	mov    $0x4023d8,%edi
+  400e9d:	e8 6e fc ff ff       	callq  400b10 <puts@plt>
+  400ea2:	e8 f7 05 00 00       	callq  40149e <read_line>
+  400ea7:	48 89 c7             	mov    %rax,%rdi
+  400eaa:	e8 b3 01 00 00       	callq  401062 <phase_5>
+  400eaf:	e8 10 07 00 00       	callq  4015c4 <phase_defused>
+  400eb4:	bf 1a 23 40 00       	mov    $0x40231a,%edi
+  400eb9:	e8 52 fc ff ff       	callq  400b10 <puts@plt>
+  400ebe:	e8 db 05 00 00       	callq  40149e <read_line>
+  400ec3:	48 89 c7             	mov    %rax,%rdi
+```
+&rArr; %rdi stores the address of the input string.
+
+### Step 2: phase_5
+
+```
+0000000000401062 <phase_5>:
+  401062:	53                   	push   %rbx
+  401063:	48 83 ec 20          	sub    $0x20,%rsp
+  401067:	48 89 fb             	mov    %rdi,%rbx
+  40106a:	64 48 8b 04 25 28 00 	mov    %fs:0x28,%rax
+  401071:	00 00 
+  401073:	48 89 44 24 18       	mov    %rax,0x18(%rsp)
+  401078:	31 c0                	xor    %eax,%eax
+  40107a:	e8 9c 02 00 00       	callq  40131b <string_length>
+  40107f:	83 f8 06             	cmp    $0x6,%eax
+  401082:	74 4e                	je     4010d2 <phase_5+0x70>
+  401084:	e8 b1 03 00 00       	callq  40143a <explode_bomb>
+  ...
+```
+&rArr; Distribute 32 bytes to stack.
+&rArr; Put a canary on rsp+0x18.
+&rArr; The input string should have 6 characters exactly.
+&rArr; Put the pointer of input string to ***%rbx***.
+
+|Reg|Description|
+|:-----|:----------|
+|%rbx|pointer to input string|
+
+```
+  4010d2:	b8 00 00 00 00       	mov    $0x0,%eax
+  4010d7:	eb b2                	jmp    40108b <phase_5+0x29>
+
+  ...
+<br/>x
+  401099:	0f b6 92 b0 24 40 00 	movzbl 0x4024b0(%rdx),%edx
+  4010a0:	88 54 04 10          	mov    %dl,0x10(%rsp,%rax,1)
+  4010a4:	48 83 c0 01          	add    $0x1,%rax
+  4010a8:	48 83 f8 06          	cmp    $0x6,%rax
+  4010ac:	75 dd                	jne    40108b <phase_5+0x29>
+  4010ae:	c6 44 24 16 00       	movb   $0x0,0x16(%rsp)
+  4010b3:	be 5e 24 40 00       	mov    $0x40245e,%esi
+  4010b8:	48 8d 7c 24 10       	lea    0x10(%rsp),%rdi
+  4010bd:	e8 76 02 00 00       	callq  401338 <strings_not_equal>
+  4010c2:	85 c0                	test   %eax,%eax
+  4010c4:	74 13                	je     4010d9 <phase_5+0x77>
+
+  ...
+
+  4010d9:	48 8b 44 24 18       	mov    0x18(%rsp),%rax
+  4010de:	64 48 33 04 25 28 00 	xor    %fs:0x28,%rax
+  4010e5:	00 00 
+  4010e7:	74 05                	je     4010ee <phase_5+0x8c>
+  4010e9:	e8 42 fa ff ff       	callq  400b30 <__stack_chk_fail@plt>
+  4010ee:	48 83 c4 20          	add    $0x20,%rsp
+  4010f2:	5b                   	pop    %rbx
+  4010f3:	c3                   	retq   
+```
+&rArr; ***%eax*** is an index (i) through the string.
+&rArr; `40108b ~ 401099` get the character at addr (input_str[i] & 0xf) + 0x4024b0
+&rArr; `4010a0` put the character at `%rsp + 0x10)` until (i == 6)
+&rArr; Compare the string at `(%rsp + 0x10)` to the string at `0x40245e`
     
-    
+
+### Step 3: Get the answer through gdb
+
+Find the content at `0x4024b0` and `0x40245e`
+
+1. Debug the bomb: `gdb bomb`
+2. Set the breakpoint at line 100: `b 100`
+3. Run the program: `run bomb answer.txt`
+4. Print the string at 0x4024b0: `x/s 0x4024b0`
+    &rArr; "maduiersnfotvbylSo you think you can stop the bomb with ctrl-c, do you?"
+5. Print the string at 0x40245e: `x/s 0x40245e`   
+    &rArr; "flyers"
+
+`The corresponding index of "flyers" in the string at 0x4024b0 is : 9 15 14 5 6 7`
+    &rArr; The answer is `ionefg`
     
 ## Appendix
 ### x86-64 registers convention
