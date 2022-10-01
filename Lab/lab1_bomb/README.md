@@ -787,10 +787,10 @@ By Step.3 we know that the result of `func4(num1, 0, 0xe)` should be 0. <br/>
   401084:	e8 b1 03 00 00       	callq  40143a <explode_bomb>
   ...
 ```
-&rArr; Distribute 32 bytes to stack.
-&rArr; Put a canary on rsp+0x18.
-&rArr; The input string should have 6 characters exactly.
-&rArr; Put the pointer of input string to ***%rbx***.
+&rArr; Distribute 32 bytes to stack.  
+&rArr; Put a canary on rsp+0x18.  
+&rArr; The input string should have 6 characters exactly.  
+&rArr; Put the pointer of input string to ***%rbx***.  
 
 |Reg|Description|
 |:-----|:----------|
@@ -825,10 +825,10 @@ By Step.3 we know that the result of `func4(num1, 0, 0xe)` should be 0. <br/>
   4010f2:	5b                   	pop    %rbx
   4010f3:	c3                   	retq   
 ```
-&rArr; ***%eax*** is an index (i) through the string.
-&rArr; `40108b ~ 401099` get the character at addr (input_str[i] & 0xf) + 0x4024b0
-&rArr; `4010a0` put the character at `%rsp + 0x10)` until (i == 6)
-&rArr; Compare the string at `(%rsp + 0x10)` to the string at `0x40245e`
+&rArr; ***%eax*** is an index (i) through the string.  
+&rArr; `40108b ~ 401099` get the character at addr (input_str[i] & 0xf) + 0x4024b0  
+&rArr; `4010a0` put the character at `%rsp + 0x10)` until (i == 6)  
+&rArr; Compare the string at `(%rsp + 0x10)` to the string at `0x40245e`  
     
 
 ### Step 3: Get the answer through gdb
@@ -838,7 +838,7 @@ Find the content at `0x4024b0` and `0x40245e`
 1. Debug the bomb: `gdb bomb`
 2. Set the breakpoint at line 100: `b 100`
 3. Run the program: `run bomb answer.txt`
-4. Print the string at 0x4024b0: `x/s 0x4024b0`
+4. Print the string at 0x4024b0: `x/s 0x4024b0`  
     &rArr; "maduiersnfotvbylSo you think you can stop the bomb with ctrl-c, do you?"
 5. Print the string at 0x40245e: `x/s 0x40245e`   
     &rArr; "flyers"
