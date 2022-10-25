@@ -2,7 +2,6 @@
 
 > **Covered Concept:&emsp;Debug Tool, Machine Code, Assembly**
 
-<!-- TOC start -->
 - [**LAB1 - Bomb**](#--lab1---bomb--)
   * [**Problem Description**](#--problem-description--)
   * [**My Solution**](#--my-solution--)
@@ -28,10 +27,14 @@
     + [Step 1: main](#step-1--main)
     + [Step 2: phase_5](#step-2--phase-5)
     + [Step 3: Get the answer through gdb](#step-3--get-the-answer-through-gdb)
-  * [Appendix](#appendix)
-    + [x86-64 registers convention](#x86-64-registers-convention)
-  * [Reference](#reference)
-<!-- TOC end -->
+    + [Phase 6](#phase-6)
+    + [Step 1: main](#step-1--main-1)
+    + [Step 2: phase 6](#step-2--phase-6)
+    + [Step 3: Section 1 (401100 ~ 401151)](#step-3--section-1--401100---401151-)
+    + [Step 4: Section 2 (401153 ~ 40116d)](#step-4--section-2--401153---40116d-)
+    + [Step 5: Section 3 (40116f ~ 4011a9)](#step-5--section-3--40116f---4011a9-)
+    + [Step 6: Section 4 (4011ab ~ 401203)](#step-6--section-4--4011ab---401203-)
+    + [Step 7: Find the correct order](#step-7--find-the-correct-order)
 
 
 ## **Problem Description**
@@ -845,11 +848,362 @@ Find the content at `0x4024b0` and `0x40245e`
 
 `The corresponding index of "flyers" in the string at 0x4024b0 is : 9 15 14 5 6 7`
     &rArr; The answer is `ionefg`
-    
+
+
+### Phase 6
+### Step 1: main
+
+```
+  400eaa:	e8 b3 01 00 00       	callq  401062 <phase_5>
+  400eaf:	e8 10 07 00 00       	callq  4015c4 <phase_defused>
+  400eb4:	bf 1a 23 40 00       	mov    $0x40231a,%edi
+  400eb9:	e8 52 fc ff ff       	callq  400b10 <puts@plt>
+  400ebe:	e8 db 05 00 00       	callq  40149e <read_line>
+  400ec3:	48 89 c7             	mov    %rax,%rdi
+  400ec6:	e8 29 02 00 00       	callq  4010f4 <phase_6>
+  400ecb:	e8 f4 06 00 00       	callq  4015c4 <phase_defused>
+  400ed0:	b8 00 00 00 00       	mov    $0x0,%eax
+  400ed5:	5b                   	pop    %rbx
+  400ed6:	c3                   	retq   
+```
+&rArr; %rdi stores the address of the input string.
+
+### Step 2: phase 6
+
+```
+0000000004010f4 <phase_6>:
+  4010f4:	41 56                	push   %r14
+  4010f6:	41 55                	push   %r13
+  4010f8:	41 54                	push   %r12
+  4010fa:	55                   	push   %rbp
+  4010fb:	53                   	push   %rbx
+  4010fc:	48 83 ec 50          	sub    $0x50,%rsp
+  401100:	49 89 e5             	mov    %rsp,%r13
+  401103:	48 89 e6             	mov    %rsp,%rsi
+  401106:	e8 51 03 00 00       	callq  40145c <read_six_numbers>
+
+...
+
+000000000040145c <read_six_numbers>:
+  40145c:	48 83 ec 18          	sub    $0x18,%rsp
+  401460:	48 89 f2             	mov    %rsi,%rdx
+  401463:	48 8d 4e 04          	lea    0x4(%rsi),%rcx
+  401467:	48 8d 46 14          	lea    0x14(%rsi),%rax
+  40146b:	48 89 44 24 08       	mov    %rax,0x8(%rsp)
+  401470:	48 8d 46 10          	lea    0x10(%rsi),%rax
+  401474:	48 89 04 24          	mov    %rax,(%rsp)
+  401478:	4c 8d 4e 0c          	lea    0xc(%rsi),%r9
+  40147c:	4c 8d 46 08          	lea    0x8(%rsi),%r8
+  401480:	be c3 25 40 00       	mov    $0x4025c3,%esi
+  401485:	b8 00 00 00 00       	mov    $0x0,%eax
+  40148a:	e8 61 f7 ff ff       	callq  400bf0 <__isoc99_sscanf@plt>
+  40148f:	83 f8 05             	cmp    $0x5,%eax
+  401492:	7f 05                	jg     401499 <read_six_numbers+0x3d>
+  401494:	e8 a1 ff ff ff       	callq  40143a <explode_bomb>
+  401499:	48 83 c4 18          	add    $0x18,%rsp
+  40149d:	c3                   	retq
+```
+
+Refer to: [read_six_number](#step-3-read-six-numbers)  
+After read_six_numbers, we get 6 numbers on the stack from (%rsp + 0) ~ (%rsp + 0x14) which represent as [num1 num2 num3 num4 num5 num6] below.  
+
+### Step 3: Section 1 (401100 ~ 401151)
+```
+  401100:	49 89 e5             	mov    %rsp,%r13
+  401103:	48 89 e6             	mov    %rsp,%rsi
+  401106:	e8 51 03 00 00       	callq  40145c <read_six_numbers>
+  40110b:	49 89 e6             	mov    %rsp,%r14
+  40110e:	41 bc 00 00 00 00    	mov    $0x0,%r12d
+  401114:	4c 89 ed             	mov    %r13,%rbp
+  401117:	41 8b 45 00          	mov    0x0(%r13),%eax
+  40111b:	83 e8 01             	sub    $0x1,%eax
+  40111e:	83 f8 05             	cmp    $0x5,%eax
+  401121:	76 05                	jbe    401128 <phase_6+0x34>
+  401123:	e8 12 03 00 00       	callq  40143a <explode_bomb>
+
+  401128:	41 83 c4 01          	add    $0x1,%r12d
+  40112c:	41 83 fc 06          	cmp    $0x6,%r12d
+  401130:	74 21                	je     401153 <phase_6+0x5f>
+
+  401132:	44 89 e3             	mov    %r12d,%ebx
+  401135:	48 63 c3             	movslq %ebx,%rax
+  401138:	8b 04 84             	mov    (%rsp,%rax,4),%eax
+  40113b:	39 45 00             	cmp    %eax,0x0(%rbp)
+  40113e:	75 05                	jne    401145 <phase_6+0x51>
+
+  401140:	e8 f5 02 00 00       	callq  40143a <explode_bomb>
+  401145:	83 c3 01             	add    $0x1,%ebx
+  401148:	83 fb 05             	cmp    $0x5,%ebx
+  40114b:	7e e8                	jle    401135 <phase_6+0x41>
+  40114d:	49 83 c5 04          	add    $0x4,%r13
+  401151:	eb c1                	jmp    401114 <phase_6+0x20>
+
+  401153:	48 8d 74 24 18       	lea    0x18(%rsp),%rsi
+```
+&rArr; If we want to leave the code section above, we should get to line 401130  
+
+Let's find the way getting to line 401130  
+
+We can summarize the code above as below.
+
+```C
+%r13 = %rsp
+%rsi = %rsp
+call read_six_numbers
+%r14 = %rsp
+%r12 = 0
+B: 
+%rbp = %r13
+%rax = *(%r13)
+%rax -= 1
+if (%rax <= 5) {
+    %r12 += 1
+    if (%r12 != 6) {
+        %rbx = %r12
+A:      
+        %rax = %rbx
+        %rax = *(%rsp + 4 * %rax)
+        if (%rax != *(%rbp)) {
+            %rbx += 1
+            if (%rbx <= 5) {
+                goto A
+            } else {
+                %r13 += 4
+                goto B
+            }
+        } else {
+            explode_bomb
+        }
+    } else {
+        goto next_session (401153)
+    }
+} else {
+    explode_bomb
+}
+```  
+&rArr; The six numbers should be different with each other  
+&rArr; num1 ~ num6 are all <= 6 
+
+### Step 4: Section 2 (401153 ~ 40116d)
+
+```
+  401153:	48 8d 74 24 18       	lea    0x18(%rsp),%rsi
+  401158:	4c 89 f0             	mov    %r14,%rax
+  40115b:	b9 07 00 00 00       	mov    $0x7,%ecx
+  401160:	89 ca                	mov    %ecx,%edx
+  401162:	2b 10                	sub    (%rax),%edx
+  401164:	89 10                	mov    %edx,(%rax)
+  401166:	48 83 c0 04          	add    $0x4,%rax
+  40116a:	48 39 f0             	cmp    %rsi,%rax
+  40116d:	75 f1                	jne    401160 <phase_6+0x6c>
+```  
+The assembly above act like:
+
+```C
+%rsi = (%rsp + 0x18)
+%rax = %r14
+%rcx = 7
+A:
+%rdx = %rcx
+%rdx -= *(%rax)
+*(%rax) = %rdx
+%rax += 4
+if (%rax != %rsi) {
+  goto A
+} else {
+  goto next_section (40116f)
+}
+```  
+The code convert the num to (7-num)  
+&rArr; num1 => 7 - num1  
+&rArr; num2 => 7 - num2  
+....
+&rArr; num6 => 7 - num6
+
+### Step 5: Section 3 (40116f ~ 4011a9)
+
+```
+  40116f:	be 00 00 00 00       	mov    $0x0,%esi
+  401174:	eb 21                	jmp    401197 <phase_6+0xa3>
+
+  401176:	48 8b 52 08          	mov    0x8(%rdx),%rdx
+  40117a:	83 c0 01             	add    $0x1,%eax
+  40117d:	39 c8                	cmp    %ecx,%eax
+  40117f:	75 f5                	jne    401176 <phase_6+0x82>
+  401181:	eb 05                	jmp    401188 <phase_6+0x94>
+
+  401183:	ba d0 32 60 00       	mov    $0x6032d0,%edx
+  401188:	48 89 54 74 20       	mov    %rdx,0x20(%rsp,%rsi,2)
+  40118d:	48 83 c6 04          	add    $0x4,%rsi
+  401191:	48 83 fe 18          	cmp    $0x18,%rsi
+  401195:	74 14                	je     4011ab <phase_6+0xb7>
+
+  401197:	8b 0c 34             	mov    (%rsp,%rsi,1),%ecx
+  40119a:	83 f9 01             	cmp    $0x1,%ecx
+  40119d:	7e e4                	jle    401183 <phase_6+0x8f>
+  40119f:	b8 01 00 00 00       	mov    $0x1,%eax
+  4011a4:	ba d0 32 60 00       	mov    $0x6032d0,%edx
+  4011a9:	eb cb                	jmp    401176 <phase_6+0x82>
+```
+
+The assembly above act like:  
+
+```C
+%rsi = 0
+C:
+%rcx = *(%rsp + %rsi)
+if (%rcx <= 1) {
+  %rdx = 0x6032d0
+B:
+  *(%rsp + 2 * %rsi + 0x20) = %rdx
+  %rsi += 4
+  if (%rsi == 0x18) {
+    goto next_section (line 4011ab)
+  }
+  goto C
+} else {
+  %rax = 1
+  %rdx = 0x6032d0
+A:
+  %rdx = *(%rdx + 0x8)
+  %rax += 1
+  if (%rax != %rcx) {
+    goto A
+  }
+  goto B
+}
+```  
+This code section put 6 numbers on the (%rsp + 0x20), each number has 8 bytes.  
+We can imagine that there is a linked list at 0x6032d0.  
+Each node is consist of by the 
+struct node_t{
+  int64_t data;
+  node_t *pNext;
+}  
+  
+By analysing the code above, we know that each input number is related to an address in the linked list. e.g. If num1 is 2, the corresponding number put on the (%rsp + 2 * 0 + 0x20) is the address of the 2nd node in the linked list.  
+
+### Step 6: Section 4 (4011ab ~ 401203)
+
+```
+  4011ab:	48 8b 5c 24 20       	mov    0x20(%rsp),%rbx
+  4011b0:	48 8d 44 24 28       	lea    0x28(%rsp),%rax
+  4011b5:	48 8d 74 24 50       	lea    0x50(%rsp),%rsi
+  4011ba:	48 89 d9             	mov    %rbx,%rcx
+  4011bd:	48 8b 10             	mov    (%rax),%rdx
+  4011c0:	48 89 51 08          	mov    %rdx,0x8(%rcx)
+  4011c4:	48 83 c0 08          	add    $0x8,%rax
+  4011c8:	48 39 f0             	cmp    %rsi,%rax
+  4011cb:	74 05                	je     4011d2 <phase_6+0xde>
+
+  4011cd:	48 89 d1             	mov    %rdx,%rcx
+  4011d0:	eb eb                	jmp    4011bd <phase_6+0xc9>
+
+  4011d2:	48 c7 42 08 00 00 00 	movq   $0x0,0x8(%rdx)
+  4011d9:	00 
+  4011da:	bd 05 00 00 00       	mov    $0x5,%ebp
+  4011df:	48 8b 43 08          	mov    0x8(%rbx),%rax
+  4011e3:	8b 00                	mov    (%rax),%eax
+  4011e5:	39 03                	cmp    %eax,(%rbx)
+  4011e7:	7d 05                	jge    4011ee <phase_6+0xfa>
+  4011e9:	e8 4c 02 00 00       	callq  40143a <explode_bomb>
+
+  4011ee:	48 8b 5b 08          	mov    0x8(%rbx),%rbx
+  4011f2:	83 ed 01             	sub    $0x1,%ebp
+  4011f5:	75 e8                	jne    4011df <phase_6+0xeb>
+  4011f7:	48 83 c4 50          	add    $0x50,%rsp
+  4011fb:	5b                   	pop    %rbx
+  4011fc:	5d                   	pop    %rbp
+  4011fd:	41 5c                	pop    %r12
+  4011ff:	41 5d                	pop    %r13
+  401201:	41 5e                	pop    %r14
+  401203:	c3                   	retq
+```  
+The assembly above act like:  
+
+```C
+/*
+ A.
+ Re arrange the order of the linked list.
+ The 1st node on the stack (%rsp+0x20) links to the 2nd node on the stack (%rsp+0x28).
+ Similarly, The 2nd node on the stack (%rsp+0x28) links to the 3rd node on the stack (%rsp+0x30).
+ ... and so on.
+
+ B. 
+ The number in current node should be greater or equal to the next node, otherwise bomb explodes.
+*/
+
+%rbx = *(%rsp + 0x20)
+%rax = %rsp + 0x28
+%rsi = %rsp + 0x50
+%rcx = %rbx
+A:
+%rdx = *(%rax)
+*(%rcx + 0x8) = %rdx
+%rax += 0x8
+if (%rax != %rsi) {
+  %rcx = %rdx
+  goto A
+} else {
+  *(%rdx + 0x8) = 0
+  %rbp = 5
+B:
+  %rax = *(%rbx + 0x8)
+  %eax = *(%rax)
+  if (*(%rbx) >= %rax) {
+    %rbx = *(%rbx + 0x8)
+    $rbp -= 1
+    if (%rbp != 0) {
+      goto B
+    } else {
+      End of phase_6
+    }
+  } else {
+    explode_bomb
+  }
+}
+```  
+This code section does 2 things.  
+A. re-arrange the order of linked list by the order on the stack.  
+B. Check the number in new linked list so that each node has a greater number than the next node.    
+&rArr; The order on the stack is determined by the input number as in  [Step 5](#step-5-section-3-40116f--4011a9)  
+&rArr; We could re-arrange the linked list so that it sorted in descending order.  
+
+### Step 7: Find the correct order
+
+Use gdb to find the content in the linked list.  
+```
+Breakpoint 1, 0x00000000004010f4 in phase_6 ()
+(gdb) x/dw 0x6032d0
+0x6032d0 <node1>:	332
+(gdb) x/gx (0x6032d0+8)
+0x6032d8 <node1+8>:	0x00000000006032e0
+(gdb) x/dw 0x6032e0
+0x6032e0 <node2>:	168
+(gdb) x/gx (0x6032e0+8)
+0x6032e8 <node2+8>:	0x00000000006032f0
+(gdb) x/dw 0x6032f0
+0x6032f0 <node3>:	924
+(gdb) x/gx (0x6032f0+8)
+0x6032f8 <node3+8>:	0x0000000000603300
+(gdb) x/dw 0x603300
+0x603300 <node4>:	691
+(gdb) x/gx (0x603300+8)
+0x603308 <node4+8>:	0x0000000000603310
+(gdb) x/dw 0x603310
+0x603310 <node5>:	477
+(gdb) x/gx (0x603310+8)
+0x603318 <node5+8>:	0x0000000000603320
+(gdb) x/dw 0x603320
+0x603320 <node6>:	443
+(gdb) x/gx (0x603320+8)
+0x603328 <node6+8>:	0x0000000000000000
+```  
+&rArr; The order should be 3 4 5 6 1 2
+&rArr; Since the input number is converted in [Step 4](#step-4-section-2-401153--40116d),  
+the correct answer is 4 3 2 1 6 5.  
+
+
 ## Appendix
 ### x86-64 registers convention
 ![](https://i.imgur.com/A1BeC7a.png)
-
-    
-## Reference
-[GDB displays the memory contents.](https://visualgdb.com/gdbreference/commands/x)
