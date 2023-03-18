@@ -5,6 +5,7 @@
 #include "cachelab.h"
 
 typedef unsigned int uint;
+typedef char int8_t;
 
 #define helpInfo \
 "Usage: ./csim-ref [-hv] -s <num> -E <num> -b <num> -t <file>\n\
@@ -19,7 +20,8 @@ Options:\n\
 int main(int argc, char *argv[])
 {
     int opt;
-    uint tmp;
+    int tmp;
+    int8_t *pEndTmp;
     uint cacheParam_S;
     uint cacheParam_E;
     uint cacheParam_B;
@@ -33,9 +35,11 @@ int main(int argc, char *argv[])
             case 'v':
             break;
             case 's':
-                tmp = strtol(optarg, NULL, 10);
-                if (tmp > 0) {
+                tmp = strtol(optarg, &pEndTmp, 10);
+                if ((pEndTmp != optarg) && (tmp > 0)) {
                     cacheParam_S = 1 << tmp;
+                } else {
+                    printf(helpInfo);
                 }
             break;
             case 'E':
