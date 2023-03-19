@@ -9,7 +9,7 @@ typedef unsigned long uint64_t;
 /* Doubly linked List structure */
 #define listInsertHead(pList, pNewNode) \
 do {\
-    listNode_t *pTmpNode;
+    listNode_t *pTmpNode; \
     if((pTmpNode = (pList)->pHeadNode) != NULL) { \
         pTmpNode->pPrevNode = (pNewNode); \
     } \
@@ -46,7 +46,7 @@ do { \
 typedef struct listNode_t{
     struct listNode_t *pPrevNode;
     struct listNode_t *pNextNode;
-    struct void *pList;
+    void *pList;
 }listNode_t;
 
 typedef struct {
@@ -57,12 +57,15 @@ typedef struct {
 /* Cache structure */
 
 typedef struct {
+    list_t lineList;
+    uint lineCnt;
+}cacheSet_t;
+
+typedef struct {
     bool valid;
     uint64_t tagVal;
     listNode_t lineNode;
 }cacheLine_t;
-
-
 
 typedef enum {
     INSTRUCTION = 'I', 
@@ -78,6 +81,7 @@ typedef struct {
 }memOpInfo_t;
 
 typedef struct {
+    /* Input parameters */
     uint param_s;
     uint paramS;
     uint paramE;
@@ -86,6 +90,8 @@ typedef struct {
     uint64_t setIndexMask;
     uint64_t blockOffsetMask;
     uint64_t tagMask;
+    /* Simulate parameters */
+    cacheSet_t cacheSetArr[];
 }cache_t;
 
 #endif
