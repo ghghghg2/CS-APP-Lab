@@ -1,6 +1,7 @@
 #include "stdio.h"
 #include "stdbool.h"
 #include "stdlib.h"
+#include "string.h"
 #include "unistd.h"
 #include "getopt.h"
 #include "cachelab.h"
@@ -40,6 +41,7 @@ int main(int argc, char *argv[])
     /* Related to reading file */
     FILE *pInputFile = NULL;
     int8_t *pEndTmp;
+    int8_t *pToken;
     int8_t textLine[MAX_LINE_LEN] = {0};
     /* Cache parameters */
     uint cacheParam_S = 0;
@@ -102,8 +104,14 @@ int main(int argc, char *argv[])
         return 0;
     }
 
+    /* trace log procesing */
     while(fgets(textLine, MAX_LINE_LEN, pInputFile)) {
-        printf("%s", textLine);
+        printf("Raw Line: %s\n", textLine);
+        pToken = strtok(textLine, " ,");
+        while(pToken != NULL) {
+            printf("token: %s\n", pToken);
+            pToken = strtok(NULL, " ,");
+        }
     }
 
     (void)configShowVerbose;
