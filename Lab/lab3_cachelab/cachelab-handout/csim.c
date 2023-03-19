@@ -28,8 +28,13 @@ Trace File overview
 static memOpInfo_t memOpInfo;
 static cache_t cacheSimObj;
 
-static void cacheInitialize(cache_t *pCache)
+static void cacheInitialize(cache_t *pCache, uint param_s, uint paramE, uint param_b)
 {
+    pCache->param_s = param_s;
+    pCache->param_b = param_b;
+    pCache->paramB = (1 << param_b);
+    pCache->paramS = (1 << param_s);
+    pCache->paramE = paramE;
     pCache->blockOffsetMask = pCache->paramB - 1;
     pCache->setIndexMask = (pCache->paramS - 1) << (pCache->param_b);
     pCache->tagMask = ~(pCache->blockOffsetMask | pCache->setIndexMask);
@@ -40,6 +45,7 @@ int main(int argc, char *argv[])
     /* Related to input argument */
     int opt;
     int tmp;
+    uint param_s, paramE, param_b;
     bool generalInputError = false;
     /* Show verbose or not */
     bool configShowVerbose = false;
@@ -65,8 +71,7 @@ int main(int argc, char *argv[])
             case 's': /* set */
                 tmp = strtol(optarg, &pEndTmp, 10);
                 if ((pEndTmp != optarg) && (tmp > 0)) {
-                    cacheSimObj.param_s = tmp;
-                    cacheSimObj.paramS = 1 << tmp;
+                    param_s = tmp;
                 } else {
                     generalInputError = true;
                 }
@@ -74,7 +79,7 @@ int main(int argc, char *argv[])
             case 'E': /* num of line */
                 tmp = strtol(optarg, &pEndTmp, 10);
                 if ((pEndTmp != optarg) && (tmp > 0)) {
-                    cacheSimObj.paramE = tmp;
+                    paramE = tmp;
                 } else {
                     generalInputError = true;
                 }
@@ -82,8 +87,7 @@ int main(int argc, char *argv[])
             case 'b': /* block */
                 tmp = strtol(optarg, &pEndTmp, 10);
                 if ((pEndTmp != optarg) && (tmp > 0)) {
-                    cacheSimObj.param_b = tmp;
-                    cacheSimObj.paramB = 1 << tmp;
+                    param_b = tmp;
                 } else {
                     generalInputError = true;
                 }
@@ -101,7 +105,7 @@ int main(int argc, char *argv[])
             break;
         }
     }
-    if ((cacheSimObj.paramB == 0) || (cacheSimObj.paramE == 0) || (cacheSimObj.paramS == 0)) {
+    if ((param_s == 0) || (paramE == 0) || (param_b == 0)) {
         generalInputError = true;
     }
     if (generalInputError) {
@@ -110,7 +114,7 @@ int main(int argc, char *argv[])
         return 0;
     }
 
-    cacheInitialize(&cacheSimObj);
+    cacheInitialize(&cacheSimObj, param_s, paramE, param_b);
 
     /* Process trace log */
     while(fgets(textLine, MAX_LINE_LEN, pInputFile)) {
