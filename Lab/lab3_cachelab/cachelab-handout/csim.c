@@ -26,6 +26,7 @@ Trace File overview
 “M” a data modify (i.e., a data load followed by a data store)
 */
 static memOpInfo_t memOpInfo;
+static cache_t cacheSimObj;
 
 int main(int argc, char *argv[])
 {
@@ -42,10 +43,6 @@ int main(int argc, char *argv[])
     /* Line parsing */
     int8_t *pToken;
     uint8_t tokenCnt = 0;
-    /* Cache parameters */
-    uint cacheParam_S = 0;
-    uint cacheParam_E = 0;
-    uint cacheParam_B = 0;
     
 
     /* Input argument processing */
@@ -61,7 +58,7 @@ int main(int argc, char *argv[])
             case 's': /* set */
                 tmp = strtol(optarg, &pEndTmp, 10);
                 if ((pEndTmp != optarg) && (tmp > 0)) {
-                    cacheParam_S = 1 << tmp;
+                    cacheSimObj.paramS = 1 << tmp;
                 } else {
                     generalInputError = true;
                 }
@@ -69,7 +66,7 @@ int main(int argc, char *argv[])
             case 'E': /* num of line */
                 tmp = strtol(optarg, &pEndTmp, 10);
                 if ((pEndTmp != optarg) && (tmp > 0)) {
-                    cacheParam_E = tmp;
+                    cacheSimObj.paramE = tmp;
                 } else {
                     generalInputError = true;
                 }
@@ -77,7 +74,7 @@ int main(int argc, char *argv[])
             case 'b': /* block */
                 tmp = strtol(optarg, &pEndTmp, 10);
                 if ((pEndTmp != optarg) && (tmp > 0)) {
-                    cacheParam_B = 1 << tmp;
+                    cacheSimObj.paramB = 1 << tmp;
                 } else {
                     generalInputError = true;
                 }
@@ -95,7 +92,7 @@ int main(int argc, char *argv[])
             break;
         }
     }
-    if ((cacheParam_B == 0) || (cacheParam_E == 0) || (cacheParam_S == 0)) {
+    if ((cacheSimObj.paramB == 0) || (cacheSimObj.paramE == 0) || (cacheSimObj.paramS == 0)) {
         generalInputError = true;
     }
     if (generalInputError) {
@@ -111,6 +108,7 @@ int main(int argc, char *argv[])
         /* Token parsing */
         tokenCnt = 1;
         while(pToken != NULL) {
+            /* Extract 3 tokens in the line */
             if (tokenCnt == 1) {
                 memOpInfo.memOpType = (memOpType_t)pToken[0];
                 tokenCnt++;
@@ -137,6 +135,7 @@ int main(int argc, char *argv[])
             pToken = strtok(NULL, " ,");
         }
         /* Cache simulate*/
+
     }
 
     (void)configShowVerbose;

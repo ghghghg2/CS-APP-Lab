@@ -20,4 +20,10 @@ typedef struct {
     uint8_t size;
 }memOpInfo_t;
 
+typedef struct {
+    uint paramS;
+    uint paramE;
+    uint paramB;
+}cache_t;
+
 #endif
