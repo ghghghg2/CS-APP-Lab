@@ -25,8 +25,20 @@ Trace File overview
 “S” a data store
 “M” a data modify (i.e., a data load followed by a data store)
 */
+FILE *pInputFile = NULL;
 static memOpInfo_t memOpInfo;
 static cache_t cacheSimObj;
+
+static void exitFcn(void)
+{
+    if (pInputFile) {
+        fclose(pInputFile);
+    }
+    if (cacheSimObj.cacheSetArr) {
+        free(cacheSimObj.cacheSetArr);
+    }
+    // printf("\n**Exit Funxction.**\n");
+}
 
 static void cacheInitialize(cache_t *pCache, uint param_s, uint paramE, uint param_b)
 {
@@ -38,6 +50,11 @@ static void cacheInitialize(cache_t *pCache, uint param_s, uint paramE, uint par
     pCache->blockOffsetMask = pCache->paramB - 1;
     pCache->setIndexMask = (pCache->paramS - 1) << (pCache->param_b);
     pCache->tagMask = ~(pCache->blockOffsetMask | pCache->setIndexMask);
+    pCache->cacheSetArr = calloc(pCache->paramS, sizeof(cacheSet_t));
+    if (pCache->cacheSetArr == NULL) {
+        printf("No enough space to allocate.\n");
+        exit(0);
+    }
 }
 
 int main(int argc, char *argv[])
@@ -50,12 +67,14 @@ int main(int argc, char *argv[])
     /* Show verbose or not */
     bool configShowVerbose = false;
     /* Related to reading file */
-    FILE *pInputFile = NULL;
     int8_t *pEndTmp;
     int8_t textLine[MAX_LINE_LEN] = {0};
     /* Line parsing */
     int8_t *pToken;
     uint8_t tokenCnt = 0;
+
+    /* Register an exit function */
+    atexit(exitFcn);
     
 
     /* Input argument processing */
@@ -110,8 +129,7 @@ int main(int argc, char *argv[])
     }
     if (generalInputError) {
         printf(helpInfo);
-        fclose(pInputFile);
-        return 0;
+        exit(0);
     }
 
     cacheInitialize(&cacheSimObj, param_s, paramE, param_b);
@@ -156,7 +174,7 @@ int main(int argc, char *argv[])
     (void)configShowVerbose;
 
 
-    fclose(pInputFile);
+    
     printSummary(0, 0, 0);
     return 0;
 }
