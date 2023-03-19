@@ -91,7 +91,7 @@ typedef struct {
     uint64_t blockOffsetMask;
     uint64_t tagMask;
     /* Simulate parameters */
-    cacheSet_t cacheSetArr[];
+    cacheSet_t *cacheSetArr;
 }cache_t;
 
 #endif
