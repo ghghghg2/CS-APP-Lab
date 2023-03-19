@@ -28,6 +28,13 @@ Trace File overview
 static memOpInfo_t memOpInfo;
 static cache_t cacheSimObj;
 
+static void cacheInitialize(cache_t *pCache)
+{
+    pCache->blockOffsetMask = pCache->paramB - 1;
+    pCache->setIndexMask = (pCache->paramS - 1) << (pCache->param_b);
+    pCache->tagMask = ~(pCache->blockOffsetMask | pCache->setIndexMask);
+}
+
 int main(int argc, char *argv[])
 {
     /* Related to input argument */
@@ -58,6 +65,7 @@ int main(int argc, char *argv[])
             case 's': /* set */
                 tmp = strtol(optarg, &pEndTmp, 10);
                 if ((pEndTmp != optarg) && (tmp > 0)) {
+                    cacheSimObj.param_s = tmp;
                     cacheSimObj.paramS = 1 << tmp;
                 } else {
                     generalInputError = true;
@@ -74,6 +82,7 @@ int main(int argc, char *argv[])
             case 'b': /* block */
                 tmp = strtol(optarg, &pEndTmp, 10);
                 if ((pEndTmp != optarg) && (tmp > 0)) {
+                    cacheSimObj.param_b = tmp;
                     cacheSimObj.paramB = 1 << tmp;
                 } else {
                     generalInputError = true;
@@ -100,6 +109,8 @@ int main(int argc, char *argv[])
         fclose(pInputFile);
         return 0;
     }
+
+    cacheInitialize(&cacheSimObj);
 
     /* Process trace log */
     while(fgets(textLine, MAX_LINE_LEN, pInputFile)) {

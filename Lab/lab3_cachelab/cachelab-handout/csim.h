@@ -21,9 +21,14 @@ typedef struct {
 }memOpInfo_t;
 
 typedef struct {
+    uint param_s;
     uint paramS;
     uint paramE;
+    uint param_b;
     uint paramB;
+    uint64_t setIndexMask;
+    uint64_t blockOffsetMask;
+    uint64_t tagMask;
 }cache_t;
 
 #endif
