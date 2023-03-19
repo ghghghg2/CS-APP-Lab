@@ -5,10 +5,7 @@
 #include "unistd.h"
 #include "getopt.h"
 #include "cachelab.h"
-
-typedef unsigned int uint;
-typedef unsigned char uint8_t;
-typedef char int8_t;
+#include "csim.h"
 
 #define helpInfo \
 "Usage: ./csim-ref [-hv] -s <num> -E <num> -b <num> -t <file>\n\
@@ -28,7 +25,7 @@ Trace File overview
 “S” a data store
 “M” a data modify (i.e., a data load followed by a data store)
 */
-
+static memOpInfo_t memOpInfo;
 
 int main(int argc, char *argv[])
 {
@@ -41,15 +38,17 @@ int main(int argc, char *argv[])
     /* Related to reading file */
     FILE *pInputFile = NULL;
     int8_t *pEndTmp;
-    int8_t *pToken;
     int8_t textLine[MAX_LINE_LEN] = {0};
+    /* Line parsing */
+    int8_t *pToken;
+    uint8_t tokenCnt = 0;
     /* Cache parameters */
     uint cacheParam_S = 0;
     uint cacheParam_E = 0;
     uint cacheParam_B = 0;
     
 
-    /* Input processing */
+    /* Input argument processing */
     while ((opt = getopt(argc, argv, "hvs:E:b:t:")) != -1) {
         switch (opt) {
             case 'h': /* help */
@@ -101,21 +100,51 @@ int main(int argc, char *argv[])
     }
     if (generalInputError) {
         printf(helpInfo);
+        fclose(pInputFile);
         return 0;
     }
 
-    /* trace log procesing */
+    /* Process trace log */
     while(fgets(textLine, MAX_LINE_LEN, pInputFile)) {
-        printf("Raw Line: %s\n", textLine);
+        /* Process a single line */
         pToken = strtok(textLine, " ,");
+        /* Token parsing */
+        tokenCnt = 1;
         while(pToken != NULL) {
-            printf("token: %s\n", pToken);
+            if (tokenCnt == 1) {
+                memOpInfo.memOpType = (memOpType_t)pToken[0];
+                tokenCnt++;
+            } else if (tokenCnt == 2) {
+                memOpInfo.addr = strtoul(pToken, &pEndTmp, 16);
+                if ((optarg == pEndTmp) || (memOpInfo.addr < 0)) {
+                    printf("**Invalid Address.**\n");
+                    fclose(pInputFile);
+                    return 0;
+                }
+                tokenCnt++;
+            } else if (tokenCnt == 3) {
+                memOpInfo.size = strtoul(pToken, &pEndTmp, 16);
+                if ((optarg == pEndTmp) || (memOpInfo.addr < 0)) {
+                    printf("**Invalid size.**\n");
+                    fclose(pInputFile);
+                    return 0;
+                }
+                tokenCnt = 0; /* Ignore the unexpect token*/
+            } else {
+                /* Ignore the unexpect token */
+            }
+            /* Go on to process next token */
             pToken = strtok(NULL, " ,");
         }
+        /* Cache simulate*/
     }
 
     (void)configShowVerbose;
 
+
+    fclose(pInputFile);
     printSummary(0, 0, 0);
     return 0;
 }
+
+
