@@ -31,13 +31,32 @@ static cache_t cacheSimObj;
 
 static void exitFcn(void)
 {
+    uint i = 0;
+    cacheSet_t *pCacheSet = NULL;
+    cacheLine_t *pLine;
+    listNode_t *pTailNode;
+    uint paramS = cacheSimObj.paramS;
+
     if (pInputFile) {
         fclose(pInputFile);
     }
-    if (cacheSimObj.cacheSetArr) {
-        free(cacheSimObj.cacheSetArr);
+
+    /* Release the variable allocated in the process */
+    for (i = 0; i < paramS; i++) {
+        /* Find the tsil node in the list */
+        pCacheSet = &cacheSimObj.cacheSetArr[i];
+        listFindTailNode(&pCacheSet->lineList, pTailNode);
+        while(pTailNode) {
+            /* free the node backward from the rail node */
+            pLine  = getCacheLineViaNode(pTailNode);
+            pTailNode = pTailNode->pPrevNode;
+            free(pLine);
+        }
+        
     }
-    // printf("\n**Exit Function.**\n");
+    /* free the sets */
+    free(cacheSimObj.cacheSetArr);
+    
 }
 
 
