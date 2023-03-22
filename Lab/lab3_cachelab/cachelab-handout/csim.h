@@ -1,5 +1,6 @@
 #ifndef CSIM_H
 #define CSIM_H
+#include "stdbool.h"
 
 typedef unsigned int uint;
 typedef unsigned char uint8_t;
@@ -93,5 +94,10 @@ typedef struct {
     /* Simulate parameters */
     cacheSet_t *cacheSetArr;
 }cache_t;
+
+
+
+
+void cacheInitialize(cache_t *pCache, uint param_s, uint paramE, uint param_b);
 
 #endif
