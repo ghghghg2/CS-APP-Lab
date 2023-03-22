@@ -10,11 +10,11 @@ typedef unsigned long uint64_t;
 /* Doubly linked List structure */
 #define listInsertHead(pList, pNewNode) \
 do {\
-    listNode_t *pTmpNode; \
-    if((pTmpNode = (pList)->pHeadNode) != NULL) { \
-        pTmpNode->pPrevNode = (pNewNode); \
+    listNode_t *pTmpNode_; \
+    if((pTmpNode_ = (pList)->pHeadNode) != NULL) { \
+        pTmpNode_->pPrevNode = (pNewNode); \
     } \
-    (pNewNode)->pNextNode = pTmpNode; \
+    (pNewNode)->pNextNode = pTmpNode_; \
     (pNewNode)->pPrevNode = NULL; \
     (pNewNode)->pList = (pList); \
 } while(0)
@@ -22,9 +22,9 @@ do {\
 #define listMoveNodeToHead(pNode) \
 do { \
     /* Check if pNode is already head */ \
-    list_t *pList = (pNode)->pList; \
-    listNode_t *pOriginHead; \
-    if ((pOriginHead = pList->pHeadNode) == (pNode)) { \
+    list_t *pList_ = (pNode)->pList; \
+    listNode_t *pOriginHead_; \
+    if ((pOriginHead_ = pList_->pHeadNode) == (pNode)) { \
         /* Do nothing */ \
         break; \
     } \
@@ -33,16 +33,29 @@ do { \
     listNode_t *pTmpNextNode = (pNode)->pNextNode; \
     pTmpPrevNode->pNextNode = pTmpNextNode; \
     pTmpNextNode->pPrevNode = pTmpPrevNode; \
-    (pNode)->pNextNode = pOriginHead; \
+    (pNode)->pNextNode = pOriginHead_; \
     (pNode)->pPrevNode = NULL; \
-    pOriginHead->pPrevNode = (pNode); \
-    pList->pHeadNode = (pNode); \
+    pOriginHead_->pPrevNode = (pNode); \
+    pList_->pHeadNode = (pNode); \
+} while(0)
+
+#define listFindTailNode(pList, pTailNode) \
+do { \
+    listNode_t *pTmpNode_ = (pList)->pHeadNode; \
+    if (!pTmpNode_) { \
+        pTailNode = NULL;\
+        break; \
+    } \
+    while(pTmpNode_->pNextNode) { \
+        pTmpNode_ = pTmpNode_->pNextNode; \
+    } \
+    (pTailNode) = pTmpNode_; \
 } while(0)
 
 #define getNextNode(pNode) ((pNode)->pNextNode)
 #define getPrevNode(pNode) ((pNode)->pPrevNode)
 #define getOwnerPtr(pNode, ownerType_t, nodeMemberName) \
-((ownerType_t *)((void *)(pNode) - (void *)(&(ownerType_t*)(0)->nodeMemberName)))
+((ownerType_t *)((void *)(pNode) - (void *)(&((ownerType_t*)(0))->nodeMemberName)))
 
 typedef struct listNode_t{
     struct listNode_t *pPrevNode;
@@ -56,6 +69,7 @@ typedef struct {
 
 
 /* Cache structure */
+#define getCacheLineViaNode(pNode) getOwnerPtr(pNode, cacheLine_t, lineNode)
 
 typedef struct {
     list_t lineList;
