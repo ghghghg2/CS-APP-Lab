@@ -34,7 +34,8 @@ static void exitFcn(void)
     uint i = 0;
     cacheSet_t *pCacheSet = NULL;
     cacheLine_t *pLine;
-    listNode_t *pTailNode;
+    listNode_t **ppNode;
+
     uint paramS = cacheSimObj.paramS;
 
     if (pInputFile) {
@@ -45,11 +46,12 @@ static void exitFcn(void)
     for (i = 0; i < paramS; i++) {
         /* Find the tsil node in the list */
         pCacheSet = &cacheSimObj.cacheSetArr[i];
-        listFindTailNode(&pCacheSet->lineList, pTailNode);
-        while(pTailNode) {
-            /* free the node backward from the rail node */
-            pLine  = getCacheLineViaNode(pTailNode);
-            pTailNode = pTailNode->pPrevNode;
+        ppNode = &pCacheSet->lineList.pHeadNode;
+        // listFindTailNode(&pCacheSet->lineList, pTailNode);
+        while(*ppNode) {
+            /* free the node from head to tail */
+            pLine  = getCacheLineViaNode(*ppNode);
+            ppNode = &(*ppNode)->pNextNode;
             free(pLine);
         }
         
