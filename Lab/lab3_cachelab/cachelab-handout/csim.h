@@ -8,15 +8,18 @@ typedef char int8_t;
 typedef unsigned long uint64_t;
 
 /* Doubly linked List structure */
-#define listInsertHead(pList, pNewNode) \
+#define listGetNextNode(pCurrNode) ((pCurrNode)->pNextNode)
+
+#define listInsertHead(pList_, pNewNode) \
 do {\
     listNode_t *pTmpNode_; \
-    if((pTmpNode_ = (pList)->pHeadNode) != NULL) { \
+    if((pTmpNode_ = (pList_)->pHeadNode) != NULL) { \
         pTmpNode_->pPrevNode = (pNewNode); \
     } \
     (pNewNode)->pNextNode = pTmpNode_; \
     (pNewNode)->pPrevNode = NULL; \
-    (pNewNode)->pList = (pList); \
+    (pNewNode)->pList = (pList_); \
+    (pList_)->pHeadNode = (pNewNode); \
 } while(0)
 
 #define listMoveNodeToHead(pNode) \
@@ -78,7 +81,7 @@ typedef struct {
 
 typedef struct {
     bool valid;
-    uint64_t tagVal;
+    uint64_t tag;
     listNode_t lineNode;
 }cacheLine_t;
 
@@ -113,5 +116,7 @@ typedef struct {
 
 
 void cacheInitialize(cache_t *pCache, uint param_s, uint paramE, uint param_b);
+
+void cacheProcess(const cache_t *pCache, const memOpInfo_t *pMemOpInfo);
 
 #endif
