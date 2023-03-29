@@ -7,6 +7,7 @@
 #include "cachelab.h"
 #include "csim.h"
 
+/* ./csim -v -s 4 -E 1 -b 4 -t traces/yi.trace */
 #define helpInfo \
 "Usage: ./csim-ref [-hv] -s <num> -E <num> -b <num> -t <file>\n\
 Options:\n\
@@ -29,6 +30,14 @@ FILE *pInputFile = NULL;
 static memOpInfo_t memOpInfo;
 static cache_t cacheSimObj;
 
+/* Show verbose or not */
+static bool configShowVerbose = false;
+static bool missFlag, hitFlag, evictionFlag;
+static uint missCnt = 0;
+static uint hitCnt = 0;
+static uint evictionCnt = 0;
+static char currLine[MAX_LINE_LEN];
+
 static void exitFcn(void)
 {
     uint i = 0;
@@ -44,19 +53,28 @@ static void exitFcn(void)
 
     /* Release the variable allocated in the process */
     for (i = 0; i < paramS; i++) {
+        #ifdef TRACE_FREE
+            uint j = 0;
+        #endif
         /* Find the tsil node in the list */
         pCacheSet = &cacheSimObj.cacheSetArr[i];
         ppNode = &pCacheSet->lineList.pHeadNode;
         // listFindTailNode(&pCacheSet->lineList, pTailNode);
         while(*ppNode) {
             /* free the node from head to tail */
+            #ifdef TRACE_FREE
+            printf("Free: set %d / %d, line: %d / %d\n", i, paramS, j + 1, cacheSimObj.paramE);
+            j++;
+            #endif
             pLine  = getCacheLineViaNode(*ppNode);
             ppNode = &(*ppNode)->pNextNode;
             free(pLine);
         }
-        
     }
     /* free the sets */
+    #ifdef TRACE_FREE
+    printf("Free all sets.\n");
+    #endif
     free(cacheSimObj.cacheSetArr);
     
 }
@@ -70,8 +88,6 @@ int main(int argc, char *argv[])
     int tmp;
     uint param_s, paramE, param_b;
     bool generalInputError = false;
-    /* Show verbose or not */
-    bool configShowVerbose = false;
     /* Related to reading file */
     int8_t *pEndTmp;
     int8_t textLine[MAX_LINE_LEN] = {0};
@@ -81,7 +97,6 @@ int main(int argc, char *argv[])
 
     /* Register an exit function */
     atexit(exitFcn);
-    
 
     /* Input argument processing */
     while ((opt = getopt(argc, argv, "hvs:E:b:t:")) != -1) {
@@ -142,6 +157,11 @@ int main(int argc, char *argv[])
 
     /* Process trace log */
     while(fgets(textLine, MAX_LINE_LEN, pInputFile)) {
+        /* Copy the textLine to currLine because strtok is destructive to textLine*/
+        strcpy(currLine, textLine);
+        /* Remove the '\n' in currLine for display*/
+        char *pTmpCh = strchr(currLine, '\n');
+        if (pTmpCh) { *pTmpCh = '\0'; }
         /* Process a single line */
         pToken = strtok(textLine, " ,");
         /* Token parsing */
@@ -174,15 +194,48 @@ int main(int argc, char *argv[])
             pToken = strtok(NULL, " ,");
         }
         /* Cache simulate*/
-
+        if (memOpInfo.memOpType == DATAMODIFY) {
+            /* Modify: Load then Store */
+            cacheProcess(&cacheSimObj, &memOpInfo); /* Simulate Load */
+            cacheProcess(&cacheSimObj, &memOpInfo); /* Simulate Store */
+        } else if ((memOpInfo.memOpType == DATALOAD) || (memOpInfo.memOpType == DATASTORE)) {
+            /* Load or Store */
+            cacheProcess(&cacheSimObj, &memOpInfo);
+        } else {
+            /* Instruction */
+            /* Ignore */
+        }
+        /* verbose */
+        if (configShowVerbose && (memOpInfo.memOpType != INSTRUCTION)) {
+            char *missMsg = (missFlag)? "miss " : "";
+            char *hitMsg = (hitFlag)? "hit " : "";
+            char *evictionMsg = (evictionFlag)? "eviction " : "";
+            printf("%-10s %s%s%s\n", currLine, missMsg, evictionMsg, hitMsg);
+        }
+        /* Clear flags for next line. */
+        missFlag = false;
+        hitFlag = false;
+        evictionFlag = false;
     }
-
-    (void)configShowVerbose;
-
-
     
-    printSummary(0, 0, 0);
+    printSummary(hitCnt, missCnt, evictionCnt);
     return 0;
+}
+
+void miss_callback(void)
+{
+    missFlag = true;
+    missCnt++;
+}
+void hit_callback(void)
+{
+    hitFlag = true;
+    hitCnt++;
+}
+void eviction_callback(void)
+{
+    evictionFlag = true;
+    evictionCnt++;
 }
 
 
