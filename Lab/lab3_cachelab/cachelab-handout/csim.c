@@ -210,7 +210,7 @@ int main(int argc, char *argv[])
             char *missMsg = (missFlag)? "miss " : "";
             char *hitMsg = (hitFlag)? "hit " : "";
             char *evictionMsg = (evictionFlag)? "eviction " : "";
-            printf("%-10s %s%s%s\n", currLine, missMsg, evictionMsg, hitMsg);
+            printf("%-10s %s%s%s %ld\n", currLine, missMsg, evictionMsg, hitMsg, (memOpInfo.addr & cacheSimObj.setIndexMask) >> cacheSimObj.param_b);
         }
         /* Clear flags for next line. */
         missFlag = false;

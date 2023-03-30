@@ -26,16 +26,18 @@ do {\
 do { \
     /* Check if pNode is already head */ \
     list_t *pList_ = (pNode)->pList; \
-    listNode_t *pOriginHead_; \
-    if ((pOriginHead_ = pList_->pHeadNode) == (pNode)) { \
+    listNode_t *pOriginHead_ = pList_->pHeadNode; \
+    if (pOriginHead_ == (pNode)) { \
         /* Do nothing */ \
         break; \
     } \
     /* Connect the prev node to next node */ \
-    listNode_t *pTmpPrevNode = (pNode)->pPrevNode; \
-    listNode_t *pTmpNextNode = (pNode)->pNextNode; \
-    pTmpPrevNode->pNextNode = pTmpNextNode; \
-    pTmpNextNode->pPrevNode = pTmpPrevNode; \
+    listNode_t *pTmpPrevNode_ = (pNode)->pPrevNode; \
+    listNode_t *pTmpNextNode_ = (pNode)->pNextNode; \
+    pTmpPrevNode_->pNextNode = pTmpNextNode_; \
+    if (pTmpNextNode_) { \
+        pTmpNextNode_->pPrevNode = pTmpPrevNode_; \
+    }\
     (pNode)->pNextNode = pOriginHead_; \
     (pNode)->pPrevNode = NULL; \
     pOriginHead_->pPrevNode = (pNode); \
@@ -46,7 +48,7 @@ do { \
 do { \
     listNode_t *pTmpNode_ = (pList)->pHeadNode; \
     if (!pTmpNode_) { \
-        pTailNode = NULL;\
+        (pTailNode) = NULL;\
         break; \
     } \
     while(pTmpNode_->pNextNode) { \
