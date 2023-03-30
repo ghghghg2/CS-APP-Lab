@@ -55,6 +55,7 @@ void cacheProcess(const cache_t *pCache, const memOpInfo_t *pMemOpInfo)
         {
             /* Hit */
             hit_callback();
+            listMoveNodeToHead(pIdxNode);
             break;
         }
         /* Next Node */
