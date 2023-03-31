@@ -19,17 +19,12 @@ int is_transpose(int M, int N, int A[N][M], int B[M][N]);
  *     searches for that string to identify the transpose function to
  *     be graded. 
  */
+
+void my_trans(int M, int N, int A[N][M], int B[M][N]);
 char transpose_submit_desc[] = "Transpose submission";
 void transpose_submit(int M, int N, int A[N][M], int B[M][N])
 {
-    int i, j, tmp;
-
-    for (i = 0; i < N; i++) {
-        for (j = 0; j < M; j++) {
-            tmp = A[i][j];
-            B[j][i] = tmp;
-        }
-    }    
+    my_trans(M, N, A, B);
 
 }
 
@@ -52,21 +47,67 @@ void trans(int M, int N, int A[N][M], int B[M][N])
             B[j][i] = tmp;
         }
     }    
-
 }
+
+
+#define splitBlockRowNum (8)
+#define splitBlockColElemNum (8)
+
 
 char my_trans_desc[] = "my transpose";
 void my_trans(int M, int N, int A[N][M], int B[M][N])
 {
+    int iterColResidual = M % splitBlockColElemNum;
+    int iterColCnt = (M  / splitBlockColElemNum) + (int)(iterColResidual > 0);
+    int iterRowResidual = N % splitBlockRowNum;
+    int iterRowCnt = (N / splitBlockRowNum) + (int)(iterRowResidual > 0);
+    int baseRowIdx, baseColIdx;
+
+    int blockRowIdx, blockColIdx;
     int i, j, tmp;
 
-    for (i = 0; i < N; i++) {
-        for (j = 0; j < M; j++) {
-            tmp = A[i][j];
-            B[j][i] = tmp;
+    
+    for (blockRowIdx = 0; blockRowIdx < iterRowCnt; blockRowIdx++) {
+        baseRowIdx = blockRowIdx * splitBlockRowNum;
+        for (blockColIdx = 0; blockColIdx < iterColCnt; blockColIdx++) {
+            baseColIdx = blockColIdx * splitBlockColElemNum;
+            /* Process a single block */
+            #ifdef DBG_VERBOSE
+            printf("***Block: (%d, %d)***\n", baseRowIdx, baseColIdx);
+            #endif
+            for (i = 0; i < splitBlockRowNum; i++) {
+                if ((baseRowIdx + i) < N) {
+                    /* if the row index doesn't exceed N */
+                    for (j = 0; j < splitBlockColElemNum; j++) {
+                        if ((baseColIdx + j) < M) {
+                            /* if col index doesn't exceed M */ 
+                            tmp = A[baseRowIdx + i][j + baseColIdx];
+                            B[j + baseColIdx][baseRowIdx + i] = tmp;
+                            #ifdef DBG_VERBOSE
+                            printf("A[%d][%d] == %x => ", (baseRowIdx + i), (baseColIdx + j), A[baseRowIdx + i][j + baseColIdx]);
+                            printf("B[%d][%d] == %x\n", (baseColIdx + j), (baseRowIdx + i), B[j + baseColIdx][baseRowIdx + i]);
+                            #endif
+                        } else {
+                            /* stop if col index exceed M */
+                            #ifdef DBG_VERBOSE
+                            printf("****Column Exceed: %d****\n", (baseColIdx + j));
+                            #endif
+                            break;
+                        }
+                    }
+                } else {
+                    /* stop if the row index exceed N */
+                    #ifdef DBG_VERBOSE
+                    printf("****Row Exceed: %d****\n", (baseRowIdx + i));
+                    #endif
+                    break;
+                }
+            }
         }
-    }    
+        
+    }
 
+    
 }
 
 /*
