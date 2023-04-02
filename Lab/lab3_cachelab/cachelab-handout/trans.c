@@ -49,65 +49,55 @@ void trans(int M, int N, int A[N][M], int B[M][N])
     }    
 }
 
-
+// #define DEBUG_MSG
 #define splitBlockRowNum (8)
 #define splitBlockColElemNum (8)
+#define iterColCnt ((M  / splitBlockColElemNum) + (int)((M % splitBlockColElemNum) > 0))
+#define iterRowCnt ((N / splitBlockRowNum) + (int)((N % splitBlockRowNum) > 0))
 
 
 char my_trans_desc[] = "my transpose";
 void my_trans(int M, int N, int A[N][M], int B[M][N])
 {
-    int iterColResidual = M % splitBlockColElemNum;
-    int iterColCnt = (M  / splitBlockColElemNum) + (int)(iterColResidual > 0);
-    int iterRowResidual = N % splitBlockRowNum;
-    int iterRowCnt = (N / splitBlockRowNum) + (int)(iterRowResidual > 0);
     int baseRowIdx, baseColIdx;
+    int tmpDiagData[splitBlockColElemNum];
+    int i, j;
 
-    int blockRowIdx, blockColIdx;
-    int i, j, tmp;
-
-    
-    for (blockRowIdx = 0; blockRowIdx < iterRowCnt; blockRowIdx++) {
-        baseRowIdx = blockRowIdx * splitBlockRowNum;
-        for (blockColIdx = 0; blockColIdx < iterColCnt; blockColIdx++) {
-            baseColIdx = blockColIdx * splitBlockColElemNum;
-            /* Process a single block */
-            #ifdef DBG_VERBOSE
-            printf("***Block: (%d, %d)***\n", baseRowIdx, baseColIdx);
+    for (baseRowIdx = 0; baseRowIdx < N; baseRowIdx += splitBlockRowNum) {
+        for (baseColIdx = 0; baseColIdx < M; baseColIdx += splitBlockColElemNum) {
+            #ifdef DEBUG_MSG
+            printf("************Block Base Index(%d, %d)************\n", baseRowIdx, baseColIdx);
             #endif
             for (i = 0; i < splitBlockRowNum; i++) {
                 if ((baseRowIdx + i) < N) {
-                    /* if the row index doesn't exceed N */
                     for (j = 0; j < splitBlockColElemNum; j++) {
                         if ((baseColIdx + j) < M) {
-                            /* if col index doesn't exceed M */ 
-                            tmp = A[baseRowIdx + i][j + baseColIdx];
-                            B[j + baseColIdx][baseRowIdx + i] = tmp;
-                            #ifdef DBG_VERBOSE
-                            printf("A[%d][%d] == %x => ", (baseRowIdx + i), (baseColIdx + j), A[baseRowIdx + i][j + baseColIdx]);
-                            printf("B[%d][%d] == %x\n", (baseColIdx + j), (baseRowIdx + i), B[j + baseColIdx][baseRowIdx + i]);
+                            tmpDiagData[j] = A[baseRowIdx + i][baseColIdx + j];
+                            #ifdef DEBUG_MSG
+                                printf("A[%d][%d]: %x\n", baseRowIdx + i, baseColIdx + j, A[baseRowIdx + i][baseColIdx + j]);
                             #endif
                         } else {
-                            /* stop if col index exceed M */
-                            #ifdef DBG_VERBOSE
-                            printf("****Column Exceed: %d****\n", (baseColIdx + j));
+                            break;
+                        }
+                    }
+                    for (j = 0; j < splitBlockColElemNum; j++) {
+                        if ((baseColIdx + j) < M) {
+                            B[baseColIdx + j][baseRowIdx + i] = tmpDiagData[j];
+                            #ifdef DEBUG_MSG
+                            printf("B[%d][%d]: %x\n", baseColIdx + j, baseRowIdx + i, B[baseColIdx + j][baseRowIdx + i]);
                             #endif
+                        } else {
                             break;
                         }
                     }
                 } else {
-                    /* stop if the row index exceed N */
-                    #ifdef DBG_VERBOSE
-                    printf("****Row Exceed: %d****\n", (baseRowIdx + i));
-                    #endif
                     break;
                 }
             }
         }
-        
+        #ifdef DEBUG_MSG
+        #endif
     }
-
-    
 }
 
 /*
