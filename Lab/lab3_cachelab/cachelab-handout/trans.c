@@ -19,11 +19,19 @@ int is_transpose(int M, int N, int A[N][M], int B[M][N]);
  *     searches for that string to identify the transpose function to
  *     be graded. 
  */
-
+// static int splitBlockRowNum = 8;
+// static int splitBlockColElemNum = 8;
 void my_trans(int M, int N, int A[N][M], int B[M][N]);
 char transpose_submit_desc[] = "Transpose submission";
 void transpose_submit(int M, int N, int A[N][M], int B[M][N])
 {
+   /*if ((M == 64) && (N == 64)) {
+        splitBlockRowNum = 4;
+        splitBlockColElemNum = 4;
+    } else if ((M == 32) && (N == 32)){
+        splitBlockRowNum = 8;
+        splitBlockColElemNum = 8;
+    } */
     my_trans(M, N, A, B);
 
 }
@@ -50,8 +58,8 @@ void trans(int M, int N, int A[N][M], int B[M][N])
 }
 
 // #define DEBUG_MSG
-#define splitBlockRowNum (8)
-#define splitBlockColElemNum (8)
+//static int splitBlockRowNum = 8;
+//static int splitBlockColElemNum = 8;
 #define iterColCnt ((M  / splitBlockColElemNum) + (int)((M % splitBlockColElemNum) > 0))
 #define iterRowCnt ((N / splitBlockRowNum) + (int)((N % splitBlockRowNum) > 0))
 
@@ -60,8 +68,17 @@ char my_trans_desc[] = "my transpose";
 void my_trans(int M, int N, int A[N][M], int B[M][N])
 {
     int baseRowIdx, baseColIdx;
-    int tmpDiagData[splitBlockColElemNum];
+    int tmpDiagData[8];
     int i, j;
+    int splitBlockRowNum;
+    int splitBlockColElemNum;
+    if ((M == 64) && (N == 64)) {
+        splitBlockRowNum = 8;
+        splitBlockColElemNum = 4;
+    } else {
+        splitBlockRowNum = 16;
+        splitBlockColElemNum = 8;
+    }
 
     for (baseRowIdx = 0; baseRowIdx < N; baseRowIdx += splitBlockRowNum) {
         for (baseColIdx = 0; baseColIdx < M; baseColIdx += splitBlockColElemNum) {
@@ -89,7 +106,7 @@ void my_trans(int M, int N, int A[N][M], int B[M][N])
                         } else {
                             break;
                         }
-                    }
+                    }   
                 } else {
                     break;
                 }
@@ -99,6 +116,8 @@ void my_trans(int M, int N, int A[N][M], int B[M][N])
         #endif
     }
 }
+
+
 
 /*
  * registerFunctions - This function registers your transpose
