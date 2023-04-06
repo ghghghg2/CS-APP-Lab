@@ -22,6 +22,7 @@ int is_transpose(int M, int N, int A[N][M], int B[M][N]);
 // static int splitBlockRowNum = 8;
 // static int splitBlockColElemNum = 8;
 void my_trans(int M, int N, int A[N][M], int B[M][N]);
+void my_trans64x64(int M, int N, int A[N][M], int B[M][N]);
 char transpose_submit_desc[] = "Transpose submission";
 void transpose_submit(int M, int N, int A[N][M], int B[M][N])
 {
@@ -32,7 +33,12 @@ void transpose_submit(int M, int N, int A[N][M], int B[M][N])
         splitBlockRowNum = 8;
         splitBlockColElemNum = 8;
     } */
-    my_trans(M, N, A, B);
+    if ((M == 64) && (N == 64)) {
+        my_trans64x64(M, N, A, B);
+    } else {
+        my_trans(M, N, A, B);
+    }
+    
 
 }
 
@@ -58,11 +64,10 @@ void trans(int M, int N, int A[N][M], int B[M][N])
 }
 
 // #define DEBUG_MSG
-//static int splitBlockRowNum = 8;
-//static int splitBlockColElemNum = 8;
+#define splitBlockRowNum 8
+#define splitBlockColElemNum 8
 #define iterColCnt ((M  / splitBlockColElemNum) + (int)((M % splitBlockColElemNum) > 0))
 #define iterRowCnt ((N / splitBlockRowNum) + (int)((N % splitBlockRowNum) > 0))
-
 
 char my_trans_desc[] = "my transpose";
 void my_trans(int M, int N, int A[N][M], int B[M][N])
@@ -70,15 +75,6 @@ void my_trans(int M, int N, int A[N][M], int B[M][N])
     int baseRowIdx, baseColIdx;
     int tmpDiagData[8];
     int i, j;
-    int splitBlockRowNum;
-    int splitBlockColElemNum;
-    if ((M == 64) && (N == 64)) {
-        splitBlockRowNum = 8;
-        splitBlockColElemNum = 4;
-    } else {
-        splitBlockRowNum = 16;
-        splitBlockColElemNum = 8;
-    }
 
     for (baseRowIdx = 0; baseRowIdx < N; baseRowIdx += splitBlockRowNum) {
         for (baseColIdx = 0; baseColIdx < M; baseColIdx += splitBlockColElemNum) {
@@ -118,6 +114,61 @@ void my_trans(int M, int N, int A[N][M], int B[M][N])
 }
 
 
+#define splitBlockRowNum64 8
+#define splitBlockColElemNum64 8
+#define iterColCnt64 ((M  / splitBlockColElemNum64) + (int)((M % splitBlockColElemNum64) > 0))
+#define iterRowCnt64 ((N / splitBlockRowNum64) + (int)((N % splitBlockRowNum64) > 0))
+char my_trans64x64_desc[] = "my transpose 64";
+void my_trans64x64(int M, int N, int A[N][M], int B[M][N])
+{
+    int baseRowIdx, baseColIdx;
+    int tmpDiagData[8];
+    int i, j;
+
+    for (baseRowIdx = 0; baseRowIdx < N; baseRowIdx += splitBlockRowNum) {
+        for (baseColIdx = 0; baseColIdx < M; baseColIdx += splitBlockColElemNum) {
+            /* Process (8 * 8) block */
+            /* Upper part of A sub-block */
+            for (i = 0; i < 4; i++) {
+                /* Ipper_left sub-block */
+                for (j = 0; j < 4; j++) {
+                    tmpDiagData[j] = A[baseRowIdx + i][baseColIdx + j];
+                }
+                for (j = 0; j < 4; j++) {
+                    B[baseColIdx + j][baseRowIdx + i] = tmpDiagData[j];
+                }
+                /* Upper-Right sub-block */
+                for (j = 4; j < 8; j++) {
+                    tmpDiagData[j] = A[baseRowIdx + i][baseColIdx + j];
+                }
+                for (j = 4; j < 8; j++) {
+                    B[baseColIdx + j - 4][baseRowIdx + i + 4] = tmpDiagData[j];
+                }
+            }
+            /* Lower part of A sub-block */
+            /* Lower-Left sub-block */
+            for (j = 0; j < 4; j++) {
+                for (i = 4; i < 8; i++) {
+                    tmpDiagData[i] = B[baseColIdx + j][baseRowIdx + i];
+                    B[baseColIdx + j][baseRowIdx + i] = A[baseRowIdx + i][baseColIdx + j];
+                }
+                /* Move Upper-Right sub-block of B to Left-Down sub-block of B  */
+                for (i = 4; i < 8; i++) {
+                    B[baseColIdx + j + 4][baseRowIdx + i - 4] = tmpDiagData[i];
+                }
+            }
+            /* Lower-Right sub-block */
+            for (j = 4; j < 8; j++) {
+                for (i = 4; i < 8; i++) {
+                    tmpDiagData[i] = A[baseRowIdx + i][baseColIdx + j];
+                }
+                for (i = 4; i < 8; i++) {
+                    B[baseColIdx + j][baseRowIdx + i] = tmpDiagData[i];
+                }
+            }
+        }
+    }
+}
 
 /*
  * registerFunctions - This function registers your transpose
@@ -132,9 +183,9 @@ void registerFunctions()
     registerTransFunction(transpose_submit, transpose_submit_desc); 
 
     /* Register any additional transpose functions */
-    registerTransFunction(trans, trans_desc); 
-    registerTransFunction(my_trans, my_trans_desc); 
-
+    //registerTransFunction(trans, trans_desc); 
+    //registerTransFunction(my_trans, my_trans_desc); 
+    //registerTransFunction(my_trans64x64, my_trans64x64_desc); 
 }
 
 /* 
