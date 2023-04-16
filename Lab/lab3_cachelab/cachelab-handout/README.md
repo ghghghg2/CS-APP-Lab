@@ -107,7 +107,7 @@ Refer to `cache.c` for more details of implementation.
 # Part B. Matrix Transpose
 ---
 In Part B you will write a transpose function in `trans.c` that causes as few cache misses as possible.
-Let **A** denote a matrix, and **A**ij denote the component on the ith row and jth column. The transpose of **A**, denoted **A**^T^, is a matrix such that **A**~ij~ = **A**^T^~ji~. To help you get started, we have given you an example transpose function in `trans.c` that computes the transpose of N × M matrix **A** and stores the results in M × N matrix B:
+Let **A** denote a matrix, and **A**ij denote the component on the ith row and jth column. The transpose of **A**, denoted **A**^T^, is a matrix such that **A**<sub>ij</sub> = **A**^T^<sub>ji</sub>. To help you get started, we have given you an example transpose function in `trans.c` that computes the transpose of N × M matrix **A** and stores the results in M × N matrix B:
 char trans_desc[] = "Simple row-wise scan transpose";
 void trans(int M, int N, int A[N][M], int B[M][N])
 The example transpose function is correct, but it is inefficient because the access pattern results in relatively many cache misses. Your job in Part B is to write a similar function, called transpose_submit, that minimizes the number of cache misses across different sized matrices:
@@ -162,13 +162,13 @@ The sub-rows in green compete with each other for the same set. Similarly, The s
 
 - **Non-diagonal blocking (blue)**
 The purpose of blocking is to increase the usage of cache and reduce the misses and evictions. Since the cache load a blocks (8 integers in a row) each time, we must make use of the 8 integers.
-Let's see the blue blocks of A and B, A~ur~ is going to transpose and put in B~dl~. Loading the 1st row in A~ur~ takes 1 miss. Putting the transposed row in B~dl~ takes 8 misses because the row is put in the 1st column in B~dl~.  
-Go on to the next row in th A~ur~, it also takes 1 miss loading a row. However, the 2nd column in B~dl~ is already in the cache so that it doesn't take any misses.
+Let's see the blue blocks of A and B, A<sub>ur</sub> is going to transpose and put in B<sub>dl</sub>. Loading the 1st row in A<sub>ur</sub> takes 1 miss. Putting the transposed row in B<sub>dl</sub> takes 8 misses because the row is put in the 1st column in B<sub>dl</sub>.  
+Go on to the next row in th A<sub>ur</sub>, it also takes 1 miss loading a row. However, the 2nd column in B<sub>dl</sub> is already in the cache so that it doesn't take any misses.
 
 - **Diagonal blocking (white)**
-On the other hand, the diagonal block doesn't work like the case above since the A~ul~ competes with B ~ul~ for the same cache set. 
-Putting the 1st element in the 1st row of A~ul~ to the 1st element in the 1st column of B~ul~ would cause the 1st row of A~ul~ evicted from cache. The diagonal blocking would cost one more miss and eviction in each loading of row.  
-To eliminate the cost, we create a `tmpDiagData[8]` so that a row in A~ul~ can temporarily stored in it. After that, move the transposed `tmpDiagData[8]` to B~ul~. In that case, the additional miss and eviction is eliminated. Seek more details in `trans.c`.  
+On the other hand, the diagonal block doesn't work like the case above since the A<sub>ul</sub> competes with B <sub>ul</sub> for the same cache set. 
+Putting the 1st element in the 1st row of A<sub>ul</sub> to the 1st element in the 1st column of B<sub>ul</sub> would cause the 1st row of A<sub>ul</sub> evicted from cache. The diagonal blocking would cost one more miss and eviction in each loading of row.  
+To eliminate the cost, we create a `tmpDiagData[8]` so that a row in A<sub>ul</sub> can temporarily stored in it. After that, move the transposed `tmpDiagData[8]` to B<sub>ul</sub>. In that case, the additional miss and eviction is eliminated. Seek more details in `trans.c`.  
 
 *Note. the tmpDiagData[8] can be used in non-diagonal blocking without losing generality.*
 
@@ -182,7 +182,7 @@ The transpose of 64x64 matrix seems similar to the 32x32 one. However, it ends u
 The memory layout of 64x64 matrix is showned above. Remember that the given cache can accomodate 256 integers. That is, a row competes with the 4th row follows it for the same set in cache. This phenomenon leads to more miss whenever moving the transposed row of **A** to **B**. 
 
 - Method 1.
-Let's see what happened when we use the method mentioned above. **A~ur~** is transpoed and put in **B~dl~**. Say we are processing the 1st row of **A~ur~** and storing it to the 1st column of **B~dl~**. The extra misses occur at the storing 1st column of **B~dl~**. Although it's totally fine at the first 4 elements in the 1st column of **B~dl~**, another misses occurs when it comes to the last 4 element because both of them compete for the same set.   
+Let's see what happened when we use the method mentioned above. **A<sub>ur</sub>** is transpoed and put in **B<sub>dl</sub>**. Say we are processing the 1st row of **A<sub>ur</sub>** and storing it to the 1st column of **B<sub>dl</sub>**. The extra misses occur at the storing 1st column of **B<sub>dl</sub>**. Although it's totally fine at the first 4 elements in the 1st column of **B<sub>dl</sub>**, another misses occurs when it comes to the last 4 element because both of them compete for the same set.   
 `Estimation of misses: (8 + 64) * 64 = 4608`
 
 - Method 2.
@@ -192,21 +192,21 @@ The phenomenon can be eliminated by setting the size of blocking to 4x4 but it's
 
 - Method 3.
 To Solve this problem, I've searched for [others' solution](https://hackmd.io/@Chang-Chia-Chi/CSAPP/https%3A%2F%2Fhackmd.io%2F%40Chang-Chia-Chi%2FrkRCq_vbY). Most of them use a tricky method which divides a 8x8 block to four 4x4 sub-blocks.  
-Let's dig into the method in detail. As figure shown above, we divided **A~ur~** into four sub-blocks (A~11~, A~12~, A~21~, A~22~) and  **B~dl~** into four sub-blocks (B~11~, B~12~, B~21~, B~22~).  
-    - **step 1**. A~11~ to B~11~  
-    As the method in 32x32, we load 1st row of A~11~ and stores it in tmpDiagData[8] (only 4 elements are used). And then put them into the 1st column of B~11~. The following row of A~11~ does the same thing and so on. 
+Let's dig into the method in detail. As figure shown above, we divided **A<sub>ur</sub>** into four sub-blocks (A<sub>11</sub>, A<sub>12</sub>, A<sub>21</sub>, A<sub>22</sub>) and  **B<sub>dl</sub>** into four sub-blocks (B<sub>11</sub>, B<sub>12</sub>, B<sub>21</sub>, B<sub>22</sub>).  
+    - **step 1**. A<sub>11</sub> to B<sub>11</sub>  
+    As the method in 32x32, we load 1st row of A<sub>11</sub> and stores it in tmpDiagData[8] (only 4 elements are used). And then put them into the 1st column of B<sub>11</sub>. The following row of A<sub>11</sub> does the same thing and so on. 
     `Estimation of misses: 4 + 4 = 8`
-    - **step 2**. A~12~ to B~12~ (Temporarily)
-    Do the same method as step 1. above except that the targets become A~12~ and B~12~. 
+    - **step 2**. A<sub>12</sub> to B<sub>12</sub> (Temporarily)
+    Do the same method as step 1. above except that the targets become A<sub>12</sub> and B<sub>12</sub>. 
     `Estimation of misses: 0`
-    - **step 3**. A~21~ to B~12~, B~12~ to B~21~
-    **3.1.** Store the 1 st row of B~12~ in tmpDiagData[8] (only 4 elements are used). 
-    **3.2.** Read the 1st **column** in A~21~, transpose and put it to the 1st **row** of B~12~.
-    **3.3.** Move the stored 1st B~12~ from tmpDiagData[8] to the 1st row of B~21~.
+    - **step 3**. A<sub>21</sub> to B<sub>12</sub>, B<sub>12</sub> to B<sub>21</sub>
+    **3.1.** Store the 1 st row of B<sub>12</sub> in tmpDiagData[8] (only 4 elements are used). 
+    **3.2.** Read the 1st **column** in A<sub>21</sub>, transpose and put it to the 1st **row** of B<sub>12</sub>.
+    **3.3.** Move the stored 1st B<sub>12</sub> from tmpDiagData[8] to the 1st row of B<sub>21</sub>.
     **3.4.** Does the same thing to the other rows.
     `Estimation of misses: 4 + 4 = 8`
-    - **step 4**. A~22~ to B~22~
-    Move the the transposed rows in A~22~ to B~22~. This step costs no miss because both A~22~ and B~22~ are already stored in the cache.  
+    - **step 4**. A<sub>22</sub> to B<sub>22</sub>
+    Move the the transposed rows in A<sub>22</sub> to B<sub>22</sub>. This step costs no miss because both A<sub>22</sub> and B<sub>22</sub> are already stored in the cache.  
     `Estimation of misses: 0`  
 
 Totally, method 3. costs 16 misses for each 8x8 block.  
