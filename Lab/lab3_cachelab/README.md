@@ -181,16 +181,16 @@ The transpose of 64x64 matrix seems similar to the 32x32 one. However, it ends u
 
 The memory layout of 64x64 matrix is showned above. Remember that the given cache can accomodate 256 integers. That is, a row competes with the 4th row follows it for the same set in cache. This phenomenon leads to more miss whenever moving the transposed row of **A** to **B**. 
 
-- Method 1.
+- **Method 1.**
 Let's see what happened when we use the method mentioned above. **A<sub>ur</sub>** is transpoed and put in **B<sub>dl</sub>**. Say we are processing the 1st row of **A<sub>ur</sub>** and storing it to the 1st column of **B<sub>dl</sub>**. The extra misses occur at the storing 1st column of **B<sub>dl</sub>**. Although it's totally fine at the first 4 elements in the 1st column of **B<sub>dl</sub>**, another misses occurs when it comes to the last 4 element because both of them compete for the same set.   
 `Estimation of misses: (8 + 64) * 64 = 4608`
 
-- Method 2.
+- **Method 2.**
 The phenomenon can be eliminated by setting the size of blocking to 4x4 but it's not good enough for requirement `m < 1300` since there are still 4 integers in a line of cache not used. 
 `Estimation of misses: (4 + 4 + 4) * 2 * 64 = 1536`
 
 
-- Method 3.
+- **Method 3.**
 To Solve this problem, I've searched for [others' solution](https://hackmd.io/@Chang-Chia-Chi/CSAPP/https%3A%2F%2Fhackmd.io%2F%40Chang-Chia-Chi%2FrkRCq_vbY). Most of them use a tricky method which divides a 8x8 block to four 4x4 sub-blocks.  
 Let's dig into the method in detail. As figure shown above, we divided **A<sub>ur</sub>** into four sub-blocks (A<sub>11</sub>, A<sub>12</sub>, A<sub>21</sub>, A<sub>22</sub>) and  **B<sub>dl</sub>** into four sub-blocks (B<sub>11</sub>, B<sub>12</sub>, B<sub>21</sub>, B<sub>22</sub>).  
     - **step 1**. A<sub>11</sub> to B<sub>11</sub>  
