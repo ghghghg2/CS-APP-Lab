@@ -199,11 +199,11 @@ Let's dig into the method in detail. As figure shown above, we divided **A<sub>u
     - **step 2**. A<sub>12</sub> to B<sub>12</sub> (Temporarily)
     Do the same method as step 1. above except that the targets become A<sub>12</sub> and B<sub>12</sub>. 
     `Estimation of misses: 0`
-    - **step 3**. A<sub>21</sub> to B<sub>12</sub>, B<sub>12</sub> to B<sub>21</sub>
-    **3.1.** Store the 1 st row of B<sub>12</sub> in tmpDiagData[8] (only 4 elements are used). 
-    **3.2.** Read the 1st **column** in A<sub>21</sub>, transpose and put it to the 1st **row** of B<sub>12</sub>.
-    **3.3.** Move the stored 1st B<sub>12</sub> from tmpDiagData[8] to the 1st row of B<sub>21</sub>.
-    **3.4.** Does the same thing to the other rows.
+    - **step 3**. A<sub>21</sub> to B<sub>12</sub>, B<sub>12</sub> to B<sub>21</sub>  
+    **3.1.** Store the 1 st row of B<sub>12</sub> in tmpDiagData[8] (only 4 elements are used).  
+    **3.2.** Read the 1st **column** in A<sub>21</sub>, transpose and put it to the 1st **row** of B<sub>12</sub>.  
+    **3.3.** Move the stored 1st B<sub>12</sub> from tmpDiagData[8] to the 1st row of B<sub>21</sub>.  
+    **3.4.** Does the same thing to the other rows.  
     `Estimation of misses: 4 + 4 = 8`
     - **step 4**. A<sub>22</sub> to B<sub>22</sub>
     Move the the transposed rows in A<sub>22</sub> to B<sub>22</sub>. This step costs no miss because both A<sub>22</sub> and B<sub>22</sub> are already stored in the cache.  
