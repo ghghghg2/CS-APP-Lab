@@ -1,5 +1,6 @@
 # Makefile for the CS:APP Shell Lab
 
+MODE ?= DEFAULT
 TEAM = NOBODY
 VERSION = 1
 HANDINDIR = /afs/cs/academic/class/15213-f02/L5/handin
@@ -8,7 +9,12 @@ TSH = ./tsh
 TSHREF = ./tshref
 TSHARGS = "-p"
 CC = gcc
-CFLAGS = -Wall -O2
+ifeq ($(MODE), DEBUG)
+  CFLAGS = -Wall -g
+else
+  CFLAGS = -Wall -O2
+endif
+
 FILES = $(TSH) ./myspin ./mysplit ./mystop ./myint
 
 all: $(FILES)
