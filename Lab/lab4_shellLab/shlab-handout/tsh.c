@@ -165,6 +165,24 @@ int main(int argc, char **argv)
 */
 void eval(char *cmdline) 
 {
+    /* Allocate a memory to store argv parsed from cmdline */
+    static char *myArgv[MAXARGS];
+    int isBg, isBuiltin;
+
+    isBg = parseline(cmdline, myArgv);
+
+    if ((isBuiltin = builtin_cmd(myArgv))) {
+        /* Built-in command */
+    } else {
+        /* Normal execution of binary file */
+        if (!isBg) {
+            /* Foreground Process */
+        } else {
+            /* Background Process */
+        }
+        
+    }
+
     return;
 }
 
@@ -231,7 +249,30 @@ int parseline(const char *cmdline, char **argv)
  */
 int builtin_cmd(char **argv) 
 {
-    return 0;     /* not a builtin command */
+    char *tarJob;
+
+    if (strcmp(argv[0], "jobs") == 0) {
+
+    } else if ((strcmp(argv[0], "fg") == 0) || (strcmp(argv[0], "bg") == 0)) {
+        tarJob = argv[1];
+        if (tarJob != NULL) {
+            /* Valid Job */
+            do_bgfg(argv);
+        } else {
+            /* Invalid Job */
+        }
+    } else if (strcmp(argv[0], "kill") == 0) {
+        tarJob = argv[1];
+        if (tarJob != NULL) {
+            /* Valid Job */
+        } else {
+            /* Invalid Job */
+        }
+    } else {
+        return 0;     /* not a builtin command */
+    }
+
+    return 1;  /* a builtin command */
 }
 
 /* 
