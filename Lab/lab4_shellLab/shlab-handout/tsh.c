@@ -82,6 +82,14 @@ void listjobs(struct job_t *jobs);
 void usage(void);
 void unix_error(char *msg);
 void app_error(char *msg);
+void Sigfillset(sigset_t *set);
+void Sigemptyset(sigset_t *set);
+void Sigaddset(sigset_t *set, int signum);
+void Sigprocmask(int how, const sigset_t *set, sigset_t *oldset);
+void Setpgid(pid_t pid, pid_t pgid);
+void Execve(const char *filename, char *const argv[], char *const envp[]);
+pid_t Fork(void);
+
 typedef void handler_t(int);
 handler_t *Signal(int signum, handler_t *handler);
 
@@ -167,7 +175,18 @@ void eval(char *cmdline)
 {
     /* Allocate a memory to store argv parsed from cmdline */
     static char *myArgv[MAXARGS];
+    /* Variables indicate command type */
     int isBg, isBuiltin;
+    /* Signal mask */
+    sigset_t maskAll, maskChld, prevMask;
+    /* pid */
+    pid_t pid;
+
+    Sigfillset(&maskAll);
+    Sigemptyset(&maskChld);
+    Sigaddset(&maskChld, SIGCHLD);
+    Sigemptyset(&prevMask);
+
 
     isBg = parseline(cmdline, myArgv);
 
@@ -175,11 +194,29 @@ void eval(char *cmdline)
         /* Built-in command */
     } else {
         /* Normal execution of binary file */
-        if (!isBg) {
-            /* Foreground Process */
+        Sigprocmask(SIG_BLOCK, &maskChld, &prevMask); /* Block all signal */
+        
+        if ((pid = Fork()) == 0) {
+            /* Child Process */
+            Setpgid(0, 0); /* Let pgid = pid of child process */
+            Sigprocmask(SIG_SETMASK, &prevMask, NULL); /* Unblock signals */
+            Execve(myArgv[0], myArgv, NULL);
         } else {
-            /* Background Process */
+            /* Parent Process */
+            if (!isBg) {
+                /* Foreground Process */
+                addjob(jobs, pid, FG, cmdline);
+                Sigprocmask(SIG_SETMASK, &prevMask, NULL); /* Unblock signals */
+                waitfg(pid);
+            } else {
+                /* Background Process */
+                addjob(jobs, pid, BG, cmdline);
+                Sigprocmask(SIG_SETMASK, &prevMask, NULL); /* Unblock signals */
+            }
+
         }
+
+        
         
     }
 
@@ -554,5 +591,53 @@ void sigquit_handler(int sig)
     exit(1);
 }
 
+void Sigfillset(sigset_t *set)
+{ 
+    if (sigfillset(set) < 0)
+	unix_error("Sigfillset error");
+    return;
+}
 
+void Sigemptyset(sigset_t *set)
+{
+    if (sigemptyset(set) < 0)
+	unix_error("Sigemptyset error");
+    return;
+}
 
+void Sigaddset(sigset_t *set, int signum)
+{
+    if (sigaddset(set, signum) < 0)
+	unix_error("Sigaddset error");
+    return;
+}
+
+void Sigprocmask(int how, const sigset_t *set, sigset_t *oldset)
+{
+    if (sigprocmask(how, set, oldset) < 0)
+	unix_error("Sigprocmask error");
+    return;
+}
+
+void Setpgid(pid_t pid, pid_t pgid) {
+    int rc;
+
+    if ((rc = setpgid(pid, pgid)) < 0)
+	unix_error("Setpgid error");
+    return;
+}
+
+void Execve(const char *filename, char *const argv[], char *const envp[]) 
+{
+    if (execve(filename, argv, envp) < 0)
+	unix_error("Execve error");
+}
+
+pid_t Fork(void) 
+{
+    pid_t pid;
+
+    if ((pid = fork()) < 0)
+	unix_error("Fork error");
+    return pid;
+}
