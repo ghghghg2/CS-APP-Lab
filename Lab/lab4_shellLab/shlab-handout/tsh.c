@@ -288,6 +288,11 @@ int builtin_cmd(char **argv)
 {
     char *tarJob;
 
+    if (argv[0] == NULL) {
+        /* Ignore the blank cmd */
+        return 1;
+    }
+
     if (strcmp(argv[0], "jobs") == 0) {
 
     } else if ((strcmp(argv[0], "fg") == 0) || (strcmp(argv[0], "bg") == 0)) {
