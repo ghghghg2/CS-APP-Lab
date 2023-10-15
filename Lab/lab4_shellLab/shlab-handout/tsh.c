@@ -303,13 +303,8 @@ int builtin_cmd(char **argv)
         } else {
             /* Invalid Job */
         }
-    } else if (strcmp(argv[0], "kill") == 0) {
-        tarJob = argv[1];
-        if (tarJob != NULL) {
-            /* Valid Job */
-        } else {
-            /* Invalid Job */
-        }
+    } else if (strcmp(argv[0], "quit") == 0) {
+        /* quit the shell */
     } else {
         return 0;     /* not a builtin command */
     }
