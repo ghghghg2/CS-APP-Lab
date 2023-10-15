@@ -347,6 +347,9 @@ void waitfg(pid_t pid)
             Sigsuspend(&maskEmpty); /* Suspend until any signal is triggered */
             Sigprocmask(SIG_SETMASK, &maskPrev, NULL); /* Recover Signal Mask */
         } else {
+            if (verbose == 1) {
+                printf("waitfg: Process (%d) no longer the fg process. \n", pid);
+            }
             Sigprocmask(SIG_SETMASK, &maskPrev, NULL); /* Recover Signal Mask */
             break;
         }
