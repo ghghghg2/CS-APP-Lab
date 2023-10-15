@@ -90,6 +90,7 @@ void Setpgid(pid_t pid, pid_t pgid);
 void Execve(const char *filename, char *const argv[], char *const envp[]);
 pid_t Fork(void);
 int Sigsuspend(const sigset_t *set);
+pid_t Waitpid(pid_t pid, int *iptr, int options);
 
 typedef void handler_t(int);
 handler_t *Signal(int signum, handler_t *handler);
@@ -667,4 +668,13 @@ int Sigsuspend(const sigset_t *set)
     if (errno != EINTR)
         unix_error("Sigsuspend error");
     return rc;
+}
+
+pid_t Waitpid(pid_t pid, int *iptr, int options) 
+{
+    pid_t retpid;
+
+    if ((retpid  = waitpid(pid, iptr, options)) < 0) 
+	unix_error("Waitpid error");
+    return(retpid);
 }
