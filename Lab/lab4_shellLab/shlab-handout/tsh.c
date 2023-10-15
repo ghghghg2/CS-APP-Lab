@@ -89,6 +89,7 @@ void Sigprocmask(int how, const sigset_t *set, sigset_t *oldset);
 void Setpgid(pid_t pid, pid_t pgid);
 void Execve(const char *filename, char *const argv[], char *const envp[]);
 pid_t Fork(void);
+int Sigsuspend(const sigset_t *set);
 
 typedef void handler_t(int);
 handler_t *Signal(int signum, handler_t *handler);
@@ -640,4 +641,12 @@ pid_t Fork(void)
     if ((pid = fork()) < 0)
 	unix_error("Fork error");
     return pid;
+}
+
+int Sigsuspend(const sigset_t *set)
+{
+    int rc = sigsuspend(set); /* always returns -1 */
+    if (errno != EINTR)
+        unix_error("Sigsuspend error");
+    return rc;
 }
