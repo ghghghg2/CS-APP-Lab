@@ -291,6 +291,9 @@ int parseline(const char *cmdline, char **argv)
 int builtin_cmd(char **argv) 
 {
     char *tarJob;
+    sigset_t maskAll, maskEmpty, maskPrev;
+    Sigfillset(&maskAll);
+    Sigemptyset(&maskEmpty);
 
     if (argv[0] == NULL) {
         /* Ignore the blank cmd */
@@ -298,7 +301,9 @@ int builtin_cmd(char **argv)
     }
 
     if (strcmp(argv[0], "jobs") == 0) {
-
+        Sigprocmask(SIG_BLOCK, &maskAll, &maskPrev); /* Block all signals */
+        listjobs((jobs));
+        Sigprocmask(SIG_SETMASK, &maskPrev, NULL); /* Recover Signal Mask */
     } else if ((strcmp(argv[0], "fg") == 0) || (strcmp(argv[0], "bg") == 0)) {
         tarJob = argv[1];
         if (tarJob != NULL) {
