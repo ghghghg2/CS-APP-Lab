@@ -371,6 +371,57 @@ void waitfg(pid_t pid)
  */
 void sigchld_handler(int sig) 
 {
+
+    int oldErrno = errno; /* Save errno */
+    pid_t curPid;
+    int curJid;
+    int chStatus;
+    sigset_t maskAll, maskEmpty, maskPrev;
+    Sigfillset(&maskAll);
+    Sigemptyset(&maskEmpty);
+
+    Sio_puts("sigchld_handler: entering\n");
+    
+    while ((curPid = waitpid(-1, &chStatus, WNOHANG)) > 0) {
+        /* A child has changed its state */
+        Sigprocmask(SIG_BLOCK, &maskAll, &maskPrev); /* Block all signals */
+        curJid = pid2jid(curPid);
+        deletejob(jobs, curPid);
+        if (verbose == 1) {
+            Sio_puts("sigchld_handler: Job [");
+            Sio_putl(curJid);
+            Sio_puts("] (");
+            Sio_putl(curPid);
+            Sio_puts(") deleted\n");
+        }
+        Sigprocmask(SIG_SETMASK, &maskPrev, NULL); /* Recover Signal Mask */
+        if (!WIFEXITED(chStatus)) {
+            /* Child has exited abnormally */
+            if (verbose == 1) {
+                Sio_puts("sigchld_handler: Child terminated abnormally \n");
+            }
+        } else {
+            /* Child has exited normally */
+            if (verbose == 1) {
+                Sio_puts("sigchld_handler: Job [");
+                Sio_putl(curJid);
+                Sio_puts("] (");
+                Sio_putl(curPid);
+                Sio_puts(") terminates OK (status ");
+                Sio_putl(chStatus);
+                Sio_puts(")\n");
+            }
+        }
+    }
+
+    if (errno != ECHILD) {
+        unix_error("Waitpid error");
+    }
+
+    errno = oldErrno; /* Recover errno */
+
+    Sio_puts("sigchld_handler: exiting\n");
+
     return;
 }
 
