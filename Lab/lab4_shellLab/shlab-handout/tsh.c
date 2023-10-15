@@ -326,6 +326,24 @@ void do_bgfg(char **argv)
  */
 void waitfg(pid_t pid)
 {
+    pid_t fgPID; 
+    sigset_t maskAll, maskEmpty, maskPrev;
+    Sigfillset(&maskAll);
+    Sigemptyset(&maskEmpty);
+
+    while (1) {
+        Sigprocmask(SIG_BLOCK, &maskAll, &maskPrev); /* Block all signals */
+        fgPID = fgpid(jobs); /* Get fg pid from job list */
+        if (fgPID == pid) {
+            /* fg job is executing. */
+            Sigsuspend(&maskEmpty); /* Suspend until any signal is triggered */
+            Sigprocmask(SIG_SETMASK, &maskPrev, NULL); /* Recover Signal Mask */
+        } else {
+            Sigprocmask(SIG_SETMASK, &maskPrev, NULL); /* Recover Signal Mask */
+            break;
+        }
+    }
+
     return;
 }
 
