@@ -380,7 +380,9 @@ void sigchld_handler(int sig)
     Sigfillset(&maskAll);
     Sigemptyset(&maskEmpty);
 
+    if (verbose == 1) {
     Sio_puts("sigchld_handler: entering\n");
+    }
     
     while ((curPid = waitpid(-1, &chStatus, WNOHANG)) > 0) {
         /* A child has changed its state */
@@ -419,8 +421,9 @@ void sigchld_handler(int sig)
     }
 
     errno = oldErrno; /* Recover errno */
-
+    if (verbose == 1) {
     Sio_puts("sigchld_handler: exiting\n");
+    }
 
     return;
 }
