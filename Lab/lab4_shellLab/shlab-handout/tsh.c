@@ -203,6 +203,9 @@ void eval(char *cmdline)
         if ((pid = Fork()) == 0) {
             /* Child Process */
             Setpgid(0, 0); /* Let pgid = pid of child process */
+                if (verbose == 1) {
+                    printf("Child ID: %d, Child PGID: %d\n", getpid(), getpgid(0));
+                }
             Sigprocmask(SIG_SETMASK, &prevMask, NULL); /* Unblock signals */
             Execve(myArgv[0], myArgv, NULL);
         } else {
