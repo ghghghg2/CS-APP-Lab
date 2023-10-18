@@ -419,7 +419,7 @@ void sigchld_handler(int sig)
         }
     }
 
-    if (errno != ECHILD) {
+    if ((curPid < 0) && (errno != ECHILD)) {
         unix_error("Waitpid error");
     }
 
