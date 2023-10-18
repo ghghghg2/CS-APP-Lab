@@ -501,7 +501,7 @@ int addjob(struct job_t *jobs, pid_t pid, int state, char *cmdline)
             jobs[i].pid = pid;
             jobs[i].state = state;
             jobs[i].jid = nextjid++;
-            if (nextjid > MAXJOBS)
+            if (nextjid > MAXJID)
                 nextjid = 1;
             strcpy(jobs[i].cmdline, cmdline);
             if(verbose){
