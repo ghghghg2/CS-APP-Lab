@@ -436,36 +436,42 @@ void sigchld_handler(int sig)
         Sio_puts("sigchld_handler: entering\n");
     }
     
-    while ((curPid = waitpid(-1, &chStatus, WNOHANG)) > 0) {
-        /* A child has changed its state */
+    while ((curPid = waitpid(-1, &chStatus, WNOHANG | WUNTRACED)) > 0) {
         Sigprocmask(SIG_BLOCK, &maskAll, &maskPrev); /* Block all signals */
         curJid = pid2jid(curPid);
-        deletejob(jobs, curPid);
-        if (verbose == 1) {
-            Sio_puts("sigchld_handler: Job [");
-            Sio_putl(curJid);
-            Sio_puts("] (");
-            Sio_putl(curPid);
-            Sio_puts(") deleted\n");
-        }
-        Sigprocmask(SIG_SETMASK, &maskPrev, NULL); /* Recover Signal Mask */
-        if (!WIFEXITED(chStatus)) {
-            /* Child has exited abnormally */
-            if (verbose == 1) {
-                Sio_puts("sigchld_handler: Child terminated abnormally \n");
-            }
-        } else {
-            /* Child has exited normally */
+        if (WIFEXITED(chStatus)) {
+            /* A child has terminated */
             if (verbose == 1) {
                 Sio_puts("sigchld_handler: Job [");
                 Sio_putl(curJid);
                 Sio_puts("] (");
                 Sio_putl(curPid);
-                Sio_puts(") terminates OK (status ");
+                Sio_puts(") terminates (status ");
                 Sio_putl(chStatus);
                 Sio_puts(")\n");
             }
+            deletejob(jobs, curPid);
+        } else if (WIFSIGNALED(chStatus)) {
+            Sio_puts("Job [");
+            Sio_putl(curJid);
+            Sio_puts("] (");
+            Sio_putl(curPid);
+            Sio_puts(") terminated by signal ");
+            Sio_putl(WTERMSIG(chStatus));
+            Sio_puts("\n");
+            deletejob(jobs, curPid);
+        } else if (WIFSTOPPED(chStatus)) {
+            struct job_t *pJob = getjobpid(jobs, curPid);
+            pJob->state = ST;
+            if (verbose == 1) {
+                Sio_puts("sigchld_handler: Job [");
+                Sio_putl(curJid);
+                Sio_puts("] (");
+                Sio_putl(curPid);
+                Sio_puts(") has stopped.\n");
+            }
         }
+        Sigprocmask(SIG_SETMASK, &maskPrev, NULL); /* Recover Signal Mask */
     }
 
     if ((curPid < 0) && (errno != ECHILD)) {
