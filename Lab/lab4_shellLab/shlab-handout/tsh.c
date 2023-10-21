@@ -329,6 +329,49 @@ int builtin_cmd(char **argv)
  */
 void do_bgfg(char **argv) 
 {
+    pid_t curPid;
+    int curJid;
+    struct job_t *pJob;
+    char *pFirstInvalidCh;
+    sigset_t maskAll, maskEmpty, maskPrev;
+    Sigfillset(&maskAll);
+    Sigemptyset(&maskEmpty);
+
+    if (argv[1] != NULL) {
+        Sigprocmask(SIG_BLOCK, &maskAll, &maskPrev); /* Block all signals */
+        if (argv[1][0] == '%') {
+            curJid = strtol(&argv[1][1], &pFirstInvalidCh, 10);
+        } else {
+            curPid = strtol(&argv[1][0], &pFirstInvalidCh, 10);
+            curJid = pid2jid(curPid);
+        }
+        if ((pJob = getjobjid(jobs, curJid)) != NULL) {
+            curPid = pJob->pid;
+            
+            if (strcmp(argv[0], "fg") == 0) {
+                if (pJob->state == ST) {
+                    Kill(-(pJob->pid), SIGCONT);
+                }
+                pJob->state = FG;
+                waitfg(curPid);
+            } else if (strcmp(argv[0], "bg") == 0) {
+                if (pJob->state == ST) {
+                    Kill(-(pJob->pid), SIGCONT);
+                }
+                pJob->state = BG;
+            } else {
+                if (verbose == 1) {
+                    printf("do_bgfg: Invalid Command\n");
+                }
+            }
+        } else {
+            if (verbose == 1) {
+                printf("do_bgfg: No such job\n");
+            }
+        }
+        
+        Sigprocmask(SIG_SETMASK, &maskPrev, NULL); /* Recover Signal Mask */
+    }
     return;
 }
 
