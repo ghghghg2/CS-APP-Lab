@@ -496,6 +496,25 @@ void sigint_handler(int sig)
  */
 void sigtstp_handler(int sig) 
 {
+    int oldErrno = errno; /* Save errno */
+    pid_t fgPID;
+    sigset_t maskAll, maskEmpty, maskPrev;
+    struct job_t *pFgJob;
+    Sigfillset(&maskAll);
+    Sigemptyset(&maskEmpty);
+
+    Sigprocmask(SIG_BLOCK, &maskAll, &maskPrev); /* Block all signals */
+    fgPID = fgpid(jobs); /* Get fg pid from job list */
+    if (fgPID == 0) {
+        /* No fg job in the list */
+    } else {
+        pFgJob = getjobpid(jobs, fgPID);
+        pFgJob->state = ST;
+        Kill(-fgPID, SIGTSTP);
+    }
+    Sigprocmask(SIG_SETMASK, &maskPrev, NULL); /* Recover Signal Mask */
+
+    errno = oldErrno; /* Recover errno */
     return;
 }
 
