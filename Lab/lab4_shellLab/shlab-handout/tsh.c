@@ -90,6 +90,7 @@ void Setpgid(pid_t pid, pid_t pgid);
 void Execve(const char *filename, char *const argv[], char *const envp[]);
 pid_t Fork(void);
 int Sigsuspend(const sigset_t *set);
+void Kill(pid_t pid, int signum);
 void Sio_error(char s[]);
 ssize_t Sio_puts(char s[]);
 ssize_t Sio_putl(long v);
@@ -774,6 +775,18 @@ pid_t Fork(void)
     if ((pid = fork()) < 0)
 	unix_error("Fork error");
     return pid;
+}
+
+void Kill(pid_t pid, int signum) 
+{
+    int rc;
+
+    if ((rc = kill(pid, signum)) < 0) {
+        if (errno != ESRCH) { /* No such process */
+            unix_error("Kill error");
+        }
+    }
+	
 }
 
 int Sigsuspend(const sigset_t *set)
