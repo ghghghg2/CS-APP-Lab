@@ -486,6 +486,22 @@ void sigchld_handler(int sig)
  */
 void sigint_handler(int sig) 
 {
+    int oldErrno = errno; /* Save errno */
+    pid_t fgPID;
+    sigset_t maskAll, maskEmpty, maskPrev;
+    Sigfillset(&maskAll);
+    Sigemptyset(&maskEmpty);
+
+    Sigprocmask(SIG_BLOCK, &maskAll, &maskPrev); /* Block all signals */
+    fgPID = fgpid(jobs); /* Get fg pid from job list */
+    if (fgPID == 0) {
+        /* No fg job in the list */
+    } else {
+        Kill(-fgPID, SIGINT);
+    }
+    Sigprocmask(SIG_SETMASK, &maskPrev, NULL); /* Recover Signal Mask */
+
+    errno = oldErrno; /* Recover errno */
     return;
 }
 
