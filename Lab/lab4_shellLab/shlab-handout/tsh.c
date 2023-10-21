@@ -219,6 +219,7 @@ void eval(char *cmdline)
             } else {
                 /* Background Process */
                 addjob(jobs, pid, BG, cmdline);
+                printf("[%d] (%d) %s", pid2jid(pid), pid, cmdline);
                 Sigprocmask(SIG_SETMASK, &prevMask, NULL); /* Unblock signals */
             }
 
