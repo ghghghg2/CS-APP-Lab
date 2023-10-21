@@ -292,7 +292,6 @@ int parseline(const char *cmdline, char **argv)
  */
 int builtin_cmd(char **argv) 
 {
-    char *tarJob;
     sigset_t maskAll, maskEmpty, maskPrev;
     Sigfillset(&maskAll);
     Sigemptyset(&maskEmpty);
@@ -307,13 +306,8 @@ int builtin_cmd(char **argv)
         listjobs((jobs));
         Sigprocmask(SIG_SETMASK, &maskPrev, NULL); /* Recover Signal Mask */
     } else if ((strcmp(argv[0], "fg") == 0) || (strcmp(argv[0], "bg") == 0)) {
-        tarJob = argv[1];
-        if (tarJob != NULL) {
-            /* Valid Job */
-            do_bgfg(argv);
-        } else {
-            /* Invalid Job */
-        }
+        /* Valid Job */
+        do_bgfg(argv);
     } else if (strcmp(argv[0], "quit") == 0) {
         /* quit the shell */
         if (verbose == 1) {
@@ -334,8 +328,8 @@ void do_bgfg(char **argv)
 {
     pid_t curPid;
     int curJid;
+    int isArgInvalid = 0;
     struct job_t *pJob;
-    char *pFirstInvalidCh;
     sigset_t maskAll, maskEmpty, maskPrev;
     Sigfillset(&maskAll);
     Sigemptyset(&maskEmpty);
@@ -343,37 +337,53 @@ void do_bgfg(char **argv)
     if (argv[1] != NULL) {
         Sigprocmask(SIG_BLOCK, &maskAll, &maskPrev); /* Block all signals */
         if (argv[1][0] == '%') {
-            curJid = strtol(&argv[1][1], &pFirstInvalidCh, 10);
-        } else {
-            curPid = strtol(&argv[1][0], &pFirstInvalidCh, 10);
-            curJid = pid2jid(curPid);
-        }
-        if ((pJob = getjobjid(jobs, curJid)) != NULL) {
-            curPid = pJob->pid;
-            
-            if (strcmp(argv[0], "fg") == 0) {
-                if (pJob->state == ST) {
-                    Kill(-(pJob->pid), SIGCONT);
-                }
-                pJob->state = FG;
-                waitfg(curPid);
-            } else if (strcmp(argv[0], "bg") == 0) {
-                if (pJob->state == ST) {
-                    Kill(-(pJob->pid), SIGCONT);
-                }
-                pJob->state = BG;
-            } else {
-                if (verbose == 1) {
-                    printf("do_bgfg: Invalid Command\n");
-                }
+            curJid = strtol(&argv[1][1], NULL, 10);
+            if (curJid == 0) {
+                isArgInvalid = 1;
             }
         } else {
-            if (verbose == 1) {
-                printf("do_bgfg: No such job\n");
+            curPid = strtol(&argv[1][0], NULL, 10);
+            curJid = pid2jid(curPid);
+            if (curPid == 0) {
+                isArgInvalid = 1;
+            }
+        }
+        if (isArgInvalid == 1) {
+            printf("%s: argument must be a PID or %%jobid\n", argv[0]);
+        } else {
+            if ((pJob = getjobjid(jobs, curJid)) != NULL) {
+                curPid = pJob->pid;
+                
+                if (strcmp(argv[0], "fg") == 0) {
+                    if (pJob->state == ST) {
+                        Kill(-(pJob->pid), SIGCONT);
+                    }
+                    pJob->state = FG;
+                    waitfg(curPid);
+                } else if (strcmp(argv[0], "bg") == 0) {
+                    if (pJob->state == ST) {
+                        Kill(-(pJob->pid), SIGCONT);
+                    }
+                    pJob->state = BG;
+                    printf("[%d] (%d) %s", pJob->jid, pJob->pid, pJob->cmdline);
+                } else {
+                    if (verbose == 1) {
+                        printf("do_bgfg: Invalid Command\n");
+                    }
+                }
+            } else {
+                if (argv[1][0] == '%') {
+                    printf("%s: No such job\n", argv[1]);
+                } else {
+                    printf("%s: No such process\n", argv[1]);
+                }
             }
         }
         
+        
         Sigprocmask(SIG_SETMASK, &maskPrev, NULL); /* Recover Signal Mask */
+    } else {
+        printf("%s command requires PID or %%jobid argument\n", argv[0]);
     }
     return;
 }
@@ -460,13 +470,13 @@ void sigchld_handler(int sig)
         } else if (WIFSTOPPED(chStatus)) {
             struct job_t *pJob = getjobpid(jobs, curPid);
             pJob->state = ST;
-            if (verbose == 1) {
-                Sio_puts("sigchld_handler: Job [");
-                Sio_putl(curJid);
-                Sio_puts("] (");
-                Sio_putl(curPid);
-                Sio_puts(") has stopped.\n");
-            }
+            Sio_puts("Job [");
+            Sio_putl(curJid);
+            Sio_puts("] (");
+            Sio_putl(curPid);
+            Sio_puts(") stopped by signal ");
+            Sio_putl(WSTOPSIG(chStatus));
+            Sio_puts("\n");
         }
         Sigprocmask(SIG_SETMASK, &maskPrev, NULL); /* Recover Signal Mask */
     }
