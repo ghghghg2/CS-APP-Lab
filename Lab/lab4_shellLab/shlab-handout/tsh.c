@@ -317,6 +317,10 @@ int builtin_cmd(char **argv)
         }
     } else if (strcmp(argv[0], "quit") == 0) {
         /* quit the shell */
+        if (verbose == 1) {
+            printf("Terminating after quit command\n");
+        }
+        exit(0);
     } else {
         return 0;     /* not a builtin command */
     }
