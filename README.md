@@ -1,3 +1,13 @@
+# Table of contents
+
+- [Brief Introduction](#brief-introduction)
+- [Labs](#labs)
+  - [Lab0 - Data Lab](#lab0---data-lab)
+  - [Lab1 - Bomb Lab](#lab1---bomb-lab)
+  - [Lab2 - Attack Lab](#lab2---attack-lab)
+  - [Lab3 - Cache Lab](#lab3---cache-lab)
+  - [Lab4 - Shell Lab](#lab4---shell-lab)
+
 ### Brief Introduction
 The repo records the process of learning open course [CSAPP](https://csapp.cs.cmu.edu/3e/waside.html).  
 
